@@ -15,9 +15,9 @@ const inter = Inter({ subsets: ["latin"] });
 // };
 
 export const metadata = {
-  title: "MediConnect – Book Doctors Online, Anytime",
+  title: "MediPadi – Connecting you to quality healthcare, Anytime",
   description:
-    "MediConnect makes it easy to book and consult with verified doctors online. Schedule appointments, access medical advice, and get care from anywhere with ease.",
+    "Connect with trusted healthcare facilities instantly. Book appointments, video consultations, and get quality healthcare anytime.",
   openGraph: {
     title: "MediPadi – Connecting you to quality healthcare, Anytime",
     description:
@@ -33,7 +33,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "MediConnect – Book Doctors Online, Anytime",
+    title: "MediPadi – Book Doctors Online, Anytime",
     description:
       "Book appointments and talk to trusted doctors online — anywhere, anytime.",
     images: ["/banner3.jpg"],

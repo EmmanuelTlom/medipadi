@@ -30,7 +30,7 @@ export default async function Header() {
             alt="MediPadi Logo"
             width={200}
             height={50}
-            className="h-70 m-[-25%] w-auto object-cover bg-white mx-auto"
+            className="h-70 m-[-25%] w-auto object-contain bg-white mx-auto"
           />
         </Link>
 
