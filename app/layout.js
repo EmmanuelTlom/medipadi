@@ -9,9 +9,35 @@ import { Facebook, Instagram, Linkedin, X } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// export const metadata = {
+//   title: "Doctors Appointment App",
+//   description: "Connect with doctors anytime, anywhere",
+// };
+
 export const metadata = {
-  title: "Doctors Appointment App",
-  description: "Connect with doctors anytime, anywhere",
+  title: "MediConnect – Book Doctors Online, Anytime",
+  description:
+    "MediConnect makes it easy to book and consult with verified doctors online. Schedule appointments, access medical advice, and get care from anywhere with ease.",
+  openGraph: {
+    title: "MediPadi – Connecting you to quality healthcare, Anytime",
+    description:
+      "Connect with trusted healthcare facilities instantly. Book appointments, video consultations, and get quality healthcare anytime.",
+    images: [
+      {
+        url: "/banner3.jpg", // path to your meta image
+        width: 1200,
+        height: 630,
+        alt: "Healthcare MediPadi app",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MediConnect – Book Doctors Online, Anytime",
+    description:
+      "Book appointments and talk to trusted doctors online — anywhere, anytime.",
+    images: ["/banner3.jpg"],
+  },
 };
 
 export default function RootLayout({ children }) {
