@@ -21,9 +21,10 @@ export default function Home() {
               >
                 Healthcare made simple
               </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                Connect with doctors <br />
-                <span className="gradient-title">anytime, anywhere</span>
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                Get your medical needs <br />
+                <span className="text-italic">met</span>
+                <span className="gradient-title"> anytime, anywhere.</span>
               </h1>
               <p className="text-muted-foreground text-lg md:text-xl max-w-md">
                 Book appointments, consult via video, and manage your healthcare
@@ -52,7 +53,7 @@ export default function Home() {
 
             <div className="relative h-[400px] lg:h-[500px] rounded-xl overflow-hidden">
               <Image
-                src="/banner2.png"
+                src="/banner3.jpg"
                 alt="Doctor consultation"
                 fill
                 priority

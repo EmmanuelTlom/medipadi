@@ -16,20 +16,21 @@ import Image from "next/image";
 
 export default async function Header() {
   const user = await checkUser();
+  console.log(user);
   if (user?.role === "PATIENT") {
     await checkAndAllocateCredits(user);
   }
 
   return (
-    <header className="fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-10 supports-[backdrop-filter]:bg-background/60">
+    <header className="fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-10 supports-[backdrop-filter]:bg-background/60 nav overflow-hidden">
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 cursor-pointer">
           <Image
-            src="/logo-single.png"
-            alt="Medimeet Logo"
+            src="/logo1.png"
+            alt="MediPadi Logo"
             width={200}
-            height={60}
-            className="h-10 w-auto object-contain"
+            height={50}
+            className="h-70 m-[-25%] w-auto object-contain"
           />
         </Link>
 

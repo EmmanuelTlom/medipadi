@@ -39,7 +39,7 @@ export default async function PricingPage() {
       </div>
 
       {/* Pricing Table Section */}
-      <Pricing />
+      {/* <Pricing /> */}
 
       {/* FAQ Section - Optional */}
       <div className="max-w-3xl mx-auto mt-16 text-center">
@@ -47,7 +47,7 @@ export default async function PricingPage() {
           Questions? We're Here to Help
         </h2>
         <p className="text-muted-foreground mb-4">
-          Contact our support team at support@medimeet.com
+          Contact our support team at support@medipadi.com
         </p>
       </div>
     </div>
