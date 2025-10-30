@@ -130,8 +130,9 @@
 }
 
 @media (max-width: 500px) {
-  .nav img {
-    /* max-width: 120px !important; */
-  }
+  /* .nav img {
+    max-width: 90px !important;
+    transform: scale(2);
+  } */
 }
 /* # DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19CNjdydzhYUHV5LVNLNENjaTcyREsiLCJhcGlfa2V5IjoiMDFLOFFQMjZLRVZaUFBTSEcyWlNRRkVQMEUiLCJ0ZW5hbnRfaWQiOiI3YTBkY2Q4Yzg5ZDNlY2MxZDg4OTEyMzNmN2YwNjVhZjM3NDY5OGQ3OGJiODYwNGI5M2ZhNWRiODdiZmU1YTYxIiwiaW50ZXJuYWxfc2VjcmV0IjoiOTBiNGJhZDAtMTlmYy00ZTU1LWEzYTMtNDhkNzJmYTllN2NkIn0.fjYtpF3eTfhG7Xs949w2PFwHvnQ_AIsgfd-Fk0EYsVQ" */

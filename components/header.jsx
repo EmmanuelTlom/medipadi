@@ -26,11 +26,11 @@ export default async function Header() {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 cursor-pointer">
           <Image
-            src="/logo4.png"
+            src="/logo2.png"
             alt="MediPadi Logo"
             width={200}
             height={50}
-            className="h-70 m-[-25%] w-auto object-contain"
+            className="h-70 m-[-25%] w-auto object-cover bg-white mx-auto"
           />
         </Link>
 
