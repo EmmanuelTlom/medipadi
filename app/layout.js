@@ -1,11 +1,13 @@
-import { Inter } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
-import { Toaster } from "sonner";
-import Header from "@/components/header";
-import { dark } from "@clerk/themes";
-import { ThemeProvider } from "@/components/theme-provider";
+
 import { Facebook, Instagram, Linkedin, X } from "lucide-react";
+
+import { ClerkProvider } from "@clerk/nextjs";
+import Header from "@/components/header";
+import { Inter } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
+import { dark } from "@clerk/themes";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,6 +17,7 @@ const inter = Inter({ subsets: ["latin"] });
 // };
 
 export const metadata = {
+  metadataBase: new URL("https://medipadi.vercel.app/"),
   title: "MediPadi – Connecting you to quality healthcare, Anytime",
   description:
     "Connect with trusted healthcare facilities instantly. Book appointments, video consultations, and get quality healthcare anytime.",
@@ -40,7 +43,7 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout ({ children }) {
   return (
     <ClerkProvider
       appearance={{

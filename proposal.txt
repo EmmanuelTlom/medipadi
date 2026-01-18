@@ -1,0 +1,114 @@
+Proposal for MediPadi MVP Development
+Prepared for: Medisure Care Services Ltd. (MediPadi)
+Prepared by: Emmanuel Nwabuodafi
+Date:3/09/2025
+
+1. Introduction
+Medisure Care Services Ltd. (MediPadi) is revolutionizing affordable healthcare
+for low-income Nigerians through a prepaid health micro-cover system.
+The goal of this MVP is to build a simple, smart, and secure digital platform
+that makes it easy for members to subscribe, pay, be verified, and redeem care
+at partner providers — while also empowering agents to onboard members
+and collect payments.
+The MVP will include:
+
+A corporate website that communicates MediPadi’s vision, services, and
+impact.
+
+A member and provider portal accessible via web and mobile.
+
+An Android app (with the option to extend to iOS in future phases).
+
+A dedicated Agent Module for assisted registration, wallet funding, and
+payments.
+This ensures MediPadi is positioned both as a trustworthy brand and a
+functional platform from day one.
+
+2. MVP Objectives
+
+Provide members with easy registration, payments, and digital IDs.
+
+Enable partner providers to verify members and process claims quickly.
+
+Empower agents to onboard members, fund wallets, and pay
+subscriptions on their behalf.
+
+Provide Medisure with real-time dashboards for oversight.
+
+Launch with a professional, beautiful website that includes the portal
+and app download links.
+
+3. Core Features (MVP Scope – Phase 1)
+
+A. Member Module
+
+Registration (basic details, phone number, ID).
+
+Payments via multiple channels (mobile money, USSD, bank transfer,
+POS).
+
+Membership dashboard (active/inactive status, renewal reminders).
+
+Digital membership ID (QR code + numeric ID).
+
+B. Provider Module
+
+Secure login for partner clinics/pharmacies.
+
+Member verification via ID/QR code.
+
+Claim request submission (capped monthly support).
+
+C. Agent Module
+
+Agent registration and login.
+
+Wallet funding (agents deposit into wallet).
+
+Register members and pay subscriptions on their behalf.
+
+D. Admin Dashboard
+
+Manage members, providers, and agents.
+
+Monitor payments, claims, and active members.
+
+Generate basic summary reports.
+
+E. Website
+
+Corporate site showcasing MediPadi’s mission, services, and FAQs.
+
+Login portal for members, agents, and providers.
+
+Direct app download links.
+
+F. Notifications
+
+SMS/WhatsApp/email for payments, renewal reminders, and claim
+approvals.
+
+4. Deliverables
+
+Corporate website (with portal + app download links).
+Responsive web portal (members, providers, agents).
+Android app (extendable to iOS later).
+Agent module with wallet funding and assisted registrations.
+Membership management system (IDs, provider verification).
+Payment integration (mobile money, USSD, POS).
+Claims processing with fraud controls.
+Admin dashboard with oversight and reporting.
+Notifications system (SMS, email, WhatsApp).
+Documentation & training for the Medisure team.
+
+5. Phase 2 – Future Add-Ons (Optional Growth Features)
+
+To show scalability and cost control, the following features are deferred to later
+phases:
+
+Referral & rewards system.
+Advanced analytics dashboard.
+Push notifications & in-app messaging.
+Integration with 3rd-party services (insurance, telco, banking APIs).
+Loyalty programs & discounts.
+Expanded payment gateways.
