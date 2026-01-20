@@ -7,25 +7,54 @@ datasource db {
 }
 
 model User {
-  id                  String              @id @default(uuid())
-  clerkUserId         String              @unique
-  email               String              @unique
-  name                String?
-  imageUrl            String?
-  role                UserRole            @default(UNASSIGNED)
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  credits             Int                 @default(2)
-  specialty           String?
-  experience          Int?
-  credentialUrl       String?
-  description         String?
-  verificationStatus  VerificationStatus? @default(PENDING)
-  doctorAppointments  Appointment[]       @relation("DoctorAppointments")
-  patientAppointments Appointment[]       @relation("PatientAppointments")
-  availabilities      Availability[]
-  transactions        CreditTransaction[]
-  payouts             Payout[]
+  id                   String               @id @default(uuid())
+  clerkUserId          String               @unique
+  email                String               @unique
+  firstName            String?
+  lastName             String?
+  name                 String?
+  imageUrl             String?
+  role                 UserRole             @default(UNASSIGNED)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  credits              Int                  @default(2)
+  specialty            String?
+  experience           Int?
+  credentialUrl        String?
+  description          String?
+  verificationStatus   VerificationStatus?  @default(PENDING)
+  phoneNumber          String?
+  walletBalance        Float                @default(0)
+  lastCreditAllocation DateTime?
+  membershipId         String?              @unique
+  subscriptionEnd      DateTime?
+  agentId              String?
+  doctorAppointments   Appointment[]        @relation("DoctorAppointments")
+  patientAppointments  Appointment[]        @relation("PatientAppointments")
+  availabilities       Availability[]
+  transactions         CreditTransaction[]
+  walletTransactions   WalletTransaction[]
+  payouts              Payout[]
+  memberClaims         Claim[]              @relation("MemberClaims")
+  providerClaims       Claim[]              @relation("ProviderClaims")
+  agent                User?                @relation("AgentMembers", fields: [agentId], references: [id], onDelete: SetNull)
+  registeredMembers    User[]               @relation("AgentMembers")
+  weeklyAvailability   WeeklyAvailability[]
+}
+
+model WeeklyAvailability {
+  id        String   @id @default(uuid())
+  doctorId  String
+  dayOfWeek Int // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime String // "09:00" (24-hour format HH:mm)
+  endTime   String // "17:00" (24-hour format HH:mm)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  doctor    User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, dayOfWeek])
+  @@index([doctorId, isActive])
 }
 
 model Availability {
@@ -69,6 +98,20 @@ model CreditTransaction {
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model WalletTransaction {
+  id            String                @id @default(uuid())
+  userId        String
+  amount        Float
+  type          WalletTransactionType
+  description   String?
+  balanceBefore Float
+  balanceAfter  Float
+  createdAt     DateTime              @default(now())
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
 model Payout {
   id          String       @id @default(uuid())
   doctorId    String
@@ -88,11 +131,32 @@ model Payout {
   @@index([doctorId, status])
 }
 
+model Claim {
+  id          String      @id @default(uuid())
+  memberId    String
+  providerId  String?
+  amount      Float
+  status      ClaimStatus @default(PENDING)
+  description String?
+  serviceDate DateTime?
+  adminNotes  String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  member      User        @relation("MemberClaims", fields: [memberId], references: [id], onDelete: Cascade)
+  provider    User?       @relation("ProviderClaims", fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([memberId, status])
+  @@index([providerId, status])
+}
+
 enum UserRole {
   UNASSIGNED
   PATIENT
   DOCTOR
   ADMIN
+  AGENT
+  PROVIDER
 }
 
 enum VerificationStatus {
@@ -122,4 +186,17 @@ enum TransactionType {
 enum PayoutStatus {
   PROCESSING
   PROCESSED
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum WalletTransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  MEMBER_REGISTRATION
+  REFUND
 }

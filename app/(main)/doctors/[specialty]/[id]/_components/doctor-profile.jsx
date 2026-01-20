@@ -1,32 +1,33 @@
 // /app/doctors/[id]/_components/doctor-profile.jsx
-"use client";
+'use client';
 
-import { useState } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  User,
+  AlertCircle,
   Calendar,
-  Clock,
-  Medal,
-  FileText,
   ChevronDown,
   ChevronUp,
-  AlertCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+  Clock,
+  FileText,
+  Medal,
+  User,
+} from 'lucide-react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { SlotPicker } from "./slot-picker";
-import { AppointmentForm } from "./appointment-form";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+} from '@/components/ui/card';
+
+import { AppointmentForm } from './appointment-form';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
+import { SlotPicker } from './slot-picker';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export function DoctorProfile({ doctor, availableDays }) {
   const [showBooking, setShowBooking] = useState(false);
@@ -36,7 +37,7 @@ export function DoctorProfile({ doctor, availableDays }) {
   // Calculate total available slots
   const totalSlots = availableDays?.reduce(
     (total, day) => total + day.slots.length,
-    0
+    0,
   );
 
   const toggleBooking = () => {
@@ -44,8 +45,8 @@ export function DoctorProfile({ doctor, availableDays }) {
     if (!showBooking) {
       // Scroll to booking section when expanding
       setTimeout(() => {
-        document.getElementById("booking-section")?.scrollIntoView({
-          behavior: "smooth",
+        document.getElementById('booking-section')?.scrollIntoView({
+          behavior: 'smooth',
         });
       }, 100);
     }
@@ -56,7 +57,7 @@ export function DoctorProfile({ doctor, availableDays }) {
   };
 
   const handleBookingComplete = () => {
-    router.push("/appointments");
+    router.push('/appointments');
   };
 
   return (
@@ -71,7 +72,7 @@ export function DoctorProfile({ doctor, availableDays }) {
                   {doctor.imageUrl ? (
                     <Image
                       src={doctor.imageUrl}
-                      alt={doctor.name}
+                      alt={doctor.firstName + ' ' + doctor.lastName}
                       fill
                       className="object-cover"
                     />
@@ -83,7 +84,7 @@ export function DoctorProfile({ doctor, availableDays }) {
                 </div>
 
                 <h2 className="text-xl font-bold text-white mb-1">
-                  Dr. {doctor.name}
+                  {doctor.firstName} {doctor.lastName}
                 </h2>
 
                 <Badge
@@ -127,7 +128,7 @@ export function DoctorProfile({ doctor, availableDays }) {
         <Card className="border-emerald-900/20">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-white">
-              About Dr. {doctor.name}
+              About Dr. {doctor.firstName} {doctor.lastName}
             </CardTitle>
             <CardDescription>
               Professional background and expertise

@@ -1,23 +1,26 @@
-import React from "react";
-import { Button } from "./ui/button";
 import {
+  Building2,
   Calendar,
   CreditCard,
   ShieldCheck,
   Stethoscope,
   User,
-} from "lucide-react";
-import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { checkUser } from "@/lib/checkUser";
-import { Badge } from "./ui/badge";
-import { checkAndAllocateCredits } from "@/actions/credits";
-import Image from "next/image";
+  UserCheck,
+} from 'lucide-react';
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import Image from 'next/image';
+import Link from 'next/link';
+import React from 'react';
+import { checkAndAllocateCredits } from '@/actions/credits';
+import { checkUser } from '@/lib/checkUser';
 
 export default async function Header() {
   const user = await checkUser();
-  console.log(user);
-  if (user?.role === "PATIENT") {
+  // console.log(user);
+  if (user?.role === 'PATIENT') {
     await checkAndAllocateCredits(user);
   }
 
@@ -38,7 +41,7 @@ export default async function Header() {
         <div className="flex items-center space-x-2">
           <SignedIn>
             {/* Admin Links */}
-            {user?.role === "ADMIN" && (
+            {user?.role === 'ADMIN' && (
               <Link href="/admin">
                 <Button
                   variant="outline"
@@ -54,7 +57,7 @@ export default async function Header() {
             )}
 
             {/* Doctor Links */}
-            {user?.role === "DOCTOR" && (
+            {user?.role === 'DOCTOR' && (
               <Link href="/doctor">
                 <Button
                   variant="outline"
@@ -70,23 +73,69 @@ export default async function Header() {
             )}
 
             {/* Patient Links */}
-            {user?.role === "PATIENT" && (
-              <Link href="/appointments">
+            {user?.role === 'PATIENT' && (
+              <>
+                <Link href="/member">
+                  <Button
+                    variant="outline"
+                    className="hidden md:inline-flex items-center gap-2"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    My Membership
+                  </Button>
+                  <Button variant="ghost" className="md:hidden w-10 h-10 p-0">
+                    <CreditCard className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/appointments">
+                  <Button
+                    variant="outline"
+                    className="hidden md:inline-flex items-center gap-2"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    My Appointments
+                  </Button>
+                  <Button variant="ghost" className="md:hidden w-10 h-10 p-0">
+                    <Calendar className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </>
+            )}
+
+            {/* Agent Links */}
+            {user?.role === 'AGENT' && (
+              <Link href="/agent">
                 <Button
                   variant="outline"
                   className="hidden md:inline-flex items-center gap-2"
                 >
-                  <Calendar className="h-4 w-4" />
-                  My Appointments
+                  <UserCheck className="h-4 w-4" />
+                  Agent Dashboard
                 </Button>
                 <Button variant="ghost" className="md:hidden w-10 h-10 p-0">
-                  <Calendar className="h-4 w-4" />
+                  <UserCheck className="h-4 w-4" />
+                </Button>
+              </Link>
+            )}
+
+            {/* Provider Links */}
+            {user?.role === 'PROVIDER' && (
+              <Link href="/provider">
+                <Button
+                  variant="outline"
+                  className="hidden md:inline-flex items-center gap-2"
+                >
+                  <Building2 className="h-4 w-4" />
+                  Provider Dashboard
+                </Button>
+                <Button variant="ghost" className="md:hidden w-10 h-10 p-0">
+                  <Building2 className="h-4 w-4" />
                 </Button>
               </Link>
             )}
 
             {/* Unassigned Role */}
-            {user?.role === "UNASSIGNED" && (
+            {user?.role === 'UNASSIGNED' && (
               <Link href="/onboarding">
                 <Button
                   variant="outline"
@@ -102,21 +151,29 @@ export default async function Header() {
             )}
           </SignedIn>
 
-          {(!user || user?.role !== "ADMIN") && (
-            <Link href={user?.role === "PATIENT" ? "/pricing" : "/doctor"}>
+          {(!user || user?.role !== 'ADMIN') && (
+            <Link
+              href={
+                user?.role === 'PATIENT'
+                  ? '/pricing'
+                  : user?.role === 'DOCTOR'
+                    ? '/doctor'
+                    : '#'
+              }
+            >
               <Badge
                 variant="outline"
                 className="h-9 bg-emerald-900/20 border-emerald-700/30 px-3 py-1 flex items-center gap-2"
               >
                 <CreditCard className="h-3.5 w-3.5 text-emerald-400" />
                 <span className="text-emerald-400">
-                  {user && user.role !== "ADMIN" ? (
+                  {user && user.role !== 'ADMIN' ? (
                     <>
-                      {user.credits}{" "}
+                      {user.credits}{' '}
                       <span className="hidden md:inline">
-                        {user?.role === "PATIENT"
-                          ? "Credits"
-                          : "Earned Credits"}
+                        {user?.role === 'PATIENT'
+                          ? 'Credits'
+                          : 'Earned Credits'}
                       </span>
                     </>
                   ) : (
@@ -137,9 +194,9 @@ export default async function Header() {
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "w-10 h-10",
-                  userButtonPopoverCard: "shadow-xl",
-                  userPreviewMainIdentifier: "font-semibold",
+                  avatarBox: 'w-10 h-10',
+                  userButtonPopoverCard: 'shadow-xl',
+                  userPreviewMainIdentifier: 'font-semibold',
                 },
               }}
               afterSignOutUrl="/"

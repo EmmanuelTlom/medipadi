@@ -1,8 +1,9 @@
-import { User, Star, Calendar } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Calendar, Star, User } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export function DoctorCard({ doctor }) {
   return (
@@ -13,7 +14,7 @@ export function DoctorCard({ doctor }) {
             {doctor.imageUrl ? (
               <img
                 src={doctor.imageUrl}
-                alt={doctor.name}
+                alt={doctor.firstName + ' ' + doctor.lastName}
                 className="w-12 h-12 rounded-full object-cover"
               />
             ) : (
@@ -23,7 +24,9 @@ export function DoctorCard({ doctor }) {
 
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-              <h3 className="font-medium text-white text-lg">{doctor.name}</h3>
+              <h3 className="font-medium text-white text-lg">
+                {doctor.firstName} {doctor.lastName}
+              </h3>
               <Badge
                 variant="outline"
                 className="bg-emerald-900/20 border-emerald-900/30 text-emerald-400 self-start"

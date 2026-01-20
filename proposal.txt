@@ -10,14 +10,9 @@ The goal of this MVP is to build a simple, smart, and secure digital platform
 that makes it easy for members to subscribe, pay, be verified, and redeem care
 at partner providers — while also empowering agents to onboard members
 and collect payments.
-The MVP will include:
+The MVP will include: 
 
-A corporate website that communicates MediPadi’s vision, services, and
-impact.
-
-A member and provider portal accessible via web and mobile.
-
-An Android app (with the option to extend to iOS in future phases).
+A member and provider portal accessible via web and mobile. 
 
 A dedicated Agent Module for assisted registration, wallet funding, and
 payments.

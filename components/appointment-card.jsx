@@ -1,22 +1,17 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Calendar,
+  CheckCircle,
   Clock,
-  User,
-  Video,
-  Stethoscope,
-  X,
   Edit,
   Loader2,
-  CheckCircle,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+  Stethoscope,
+  User,
+  Video,
+  X,
+} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -24,25 +19,31 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
-  cancelAppointment,
   addAppointmentNotes,
+  cancelAppointment,
   markAppointmentCompleted,
-} from "@/actions/doctor";
-import { generateVideoToken } from "@/actions/appointments";
-import useFetch from "@/hooks/use-fetch";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+} from '@/actions/doctor';
+import { useEffect, useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { format } from 'date-fns';
+import { generateVideoToken } from '@/actions/appointments';
+import { toast } from 'sonner';
+import useFetch from '@/hooks/use-fetch';
+import { useRouter } from 'next/navigation';
 
 export function AppointmentCard({
   appointment,
   userRole,
-  refetchAppointments,
+  refetchAppointments = undefined,
 }) {
   const [open, setOpen] = useState(false);
   const [action, setAction] = useState(null); // 'cancel', 'notes', 'video', or 'complete'
-  const [notes, setNotes] = useState(appointment.notes || "");
+  const [notes, setNotes] = useState(appointment.notes || '');
   const router = useRouter();
 
   // UseFetch hooks for server actions
@@ -72,22 +73,22 @@ export function AppointmentCard({
     try {
       return format(new Date(dateString), "MMMM d, yyyy 'at' h:mm a");
     } catch (e) {
-      return "Invalid date";
+      return 'Invalid date';
     }
   };
 
   // Format time only
   const formatTime = (dateString) => {
     try {
-      return format(new Date(dateString), "h:mm a");
+      return format(new Date(dateString), 'h:mm a');
     } catch (e) {
-      return "Invalid time";
+      return 'Invalid time';
     }
   };
 
   // Check if appointment can be marked as completed
   const canMarkCompleted = () => {
-    if (userRole !== "DOCTOR" || appointment.status !== "SCHEDULED") {
+    if (userRole !== 'DOCTOR' || appointment.status !== 'SCHEDULED') {
       return false;
     }
     const now = new Date();
@@ -101,11 +102,11 @@ export function AppointmentCard({
 
     if (
       window.confirm(
-        "Are you sure you want to cancel this appointment? This action cannot be undone."
+        'Are you sure you want to cancel this appointment? This action cannot be undone.',
       )
     ) {
       const formData = new FormData();
-      formData.append("appointmentId", appointment.id);
+      formData.append('appointmentId', appointment.id);
       await submitCancel(formData);
     }
   };
@@ -120,29 +121,29 @@ export function AppointmentCard({
 
     if (now < appointmentEndTime) {
       alert(
-        "Cannot mark appointment as completed before the scheduled end time."
+        'Cannot mark appointment as completed before the scheduled end time.',
       );
       return;
     }
 
     if (
       window.confirm(
-        "Are you sure you want to mark this appointment as completed? This action cannot be undone."
+        'Are you sure you want to mark this appointment as completed? This action cannot be undone.',
       )
     ) {
       const formData = new FormData();
-      formData.append("appointmentId", appointment.id);
+      formData.append('appointmentId', appointment.id);
       await submitMarkCompleted(formData);
     }
   };
 
   // Handle save notes (doctor only)
   const handleSaveNotes = async () => {
-    if (notesLoading || userRole !== "DOCTOR") return;
+    if (notesLoading || userRole !== 'DOCTOR') return;
 
     const formData = new FormData();
-    formData.append("appointmentId", appointment.id);
-    formData.append("notes", notes);
+    formData.append('appointmentId', appointment.id);
+    formData.append('notes', notes);
     await submitNotes(formData);
   };
 
@@ -150,17 +151,17 @@ export function AppointmentCard({
   const handleJoinVideoCall = async () => {
     if (tokenLoading) return;
 
-    setAction("video");
+    setAction('video');
 
     const formData = new FormData();
-    formData.append("appointmentId", appointment.id);
+    formData.append('appointmentId', appointment.id);
     await submitTokenRequest(formData);
   };
 
   // Handle successful operations
   useEffect(() => {
     if (cancelData?.success) {
-      toast.success("Appointment cancelled successfully");
+      toast.success('Appointment cancelled successfully');
       setOpen(false);
       if (refetchAppointments) {
         refetchAppointments();
@@ -172,7 +173,7 @@ export function AppointmentCard({
 
   useEffect(() => {
     if (completeData?.success) {
-      toast.success("Appointment marked as completed");
+      toast.success('Appointment marked as completed');
       setOpen(false);
       if (refetchAppointments) {
         refetchAppointments();
@@ -184,7 +185,7 @@ export function AppointmentCard({
 
   useEffect(() => {
     if (notesData?.success) {
-      toast.success("Notes saved successfully");
+      toast.success('Notes saved successfully');
       setAction(null);
       if (refetchAppointments) {
         refetchAppointments();
@@ -198,7 +199,7 @@ export function AppointmentCard({
     if (tokenData?.success) {
       // Redirect to video call page with token and session ID
       router.push(
-        `/video-call?sessionId=${tokenData.videoSessionId}&token=${tokenData.token}&appointmentId=${appointment.id}`
+        `/video-call?sessionId=${tokenData.videoSessionId}&token=${tokenData.token}&appointmentId=${appointment.id}`,
       );
     } else if (tokenData?.error) {
       setAction(null);
@@ -221,10 +222,10 @@ export function AppointmentCard({
 
   // Determine other party information based on user role
   const otherParty =
-    userRole === "DOCTOR" ? appointment.patient : appointment.doctor;
+    userRole === 'DOCTOR' ? appointment.patient : appointment.doctor;
 
-  const otherPartyLabel = userRole === "DOCTOR" ? "Patient" : "Doctor";
-  const otherPartyIcon = userRole === "DOCTOR" ? <User /> : <Stethoscope />;
+  const otherPartyLabel = userRole === 'DOCTOR' ? 'Patient' : 'Doctor';
+  const otherPartyIcon = userRole === 'DOCTOR' ? <User /> : <Stethoscope />;
 
   return (
     <>
@@ -237,16 +238,16 @@ export function AppointmentCard({
               </div>
               <div>
                 <h3 className="font-medium text-white">
-                  {userRole === "DOCTOR"
-                    ? otherParty.name
-                    : `Dr. ${otherParty.name}`}
+                  {userRole === 'DOCTOR'
+                    ? otherParty.firstName + ' ' + otherParty.lastName
+                    : `${otherParty.firstName} ${otherParty.lastName}`}
                 </h3>
-                {userRole === "DOCTOR" && (
+                {userRole === 'DOCTOR' && (
                   <p className="text-sm text-muted-foreground">
                     {otherParty.email}
                   </p>
                 )}
-                {userRole === "PATIENT" && (
+                {userRole === 'PATIENT' && (
                   <p className="text-sm text-muted-foreground">
                     {otherParty.specialty}
                   </p>
@@ -258,7 +259,7 @@ export function AppointmentCard({
                 <div className="flex items-center mt-1 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4 mr-1" />
                   <span>
-                    {formatTime(appointment.startTime)} -{" "}
+                    {formatTime(appointment.startTime)} -{' '}
                     {formatTime(appointment.endTime)}
                   </span>
                 </div>
@@ -268,11 +269,11 @@ export function AppointmentCard({
               <Badge
                 variant="outline"
                 className={
-                  appointment.status === "COMPLETED"
-                    ? "bg-emerald-900/20 border-emerald-900/30 text-emerald-400"
-                    : appointment.status === "CANCELLED"
-                    ? "bg-red-900/20 border-red-900/30 text-red-400"
-                    : "bg-amber-900/20 border-amber-900/30 text-amber-400"
+                  appointment.status === 'COMPLETED'
+                    ? 'bg-emerald-900/20 border-emerald-900/30 text-emerald-400'
+                    : appointment.status === 'CANCELLED'
+                      ? 'bg-red-900/20 border-red-900/30 text-red-400'
+                      : 'bg-amber-900/20 border-amber-900/30 text-amber-400'
                 }
               >
                 {appointment.status}
@@ -317,9 +318,9 @@ export function AppointmentCard({
               Appointment Details
             </DialogTitle>
             <DialogDescription>
-              {appointment.status === "SCHEDULED"
-                ? "Manage your upcoming appointment"
-                : "View appointment information"}
+              {appointment.status === 'SCHEDULED'
+                ? 'Manage your upcoming appointment'
+                : 'View appointment information'}
             </DialogDescription>
           </DialogHeader>
 
@@ -335,16 +336,16 @@ export function AppointmentCard({
                 </div>
                 <div>
                   <p className="text-white font-medium">
-                    {userRole === "DOCTOR"
-                      ? otherParty.name
-                      : `Dr. ${otherParty.name}`}
+                    {userRole === 'DOCTOR'
+                      ? otherParty.firstName + ' ' + otherParty.lastName
+                      : `Dr. ${otherParty.firstName} ${otherParty.lastName}`}
                   </p>
-                  {userRole === "DOCTOR" && (
+                  {userRole === 'DOCTOR' && (
                     <p className="text-muted-foreground text-sm">
                       {otherParty.email}
                     </p>
                   )}
-                  {userRole === "PATIENT" && (
+                  {userRole === 'PATIENT' && (
                     <p className="text-muted-foreground text-sm">
                       {otherParty.specialty}
                     </p>
@@ -368,7 +369,7 @@ export function AppointmentCard({
                 <div className="flex items-center">
                   <Clock className="h-5 w-5 text-emerald-400 mr-2" />
                   <p className="text-white">
-                    {formatTime(appointment.startTime)} -{" "}
+                    {formatTime(appointment.startTime)} -{' '}
                     {formatTime(appointment.endTime)}
                   </p>
                 </div>
@@ -383,11 +384,11 @@ export function AppointmentCard({
               <Badge
                 variant="outline"
                 className={
-                  appointment.status === "COMPLETED"
-                    ? "bg-emerald-900/20 border-emerald-900/30 text-emerald-400"
-                    : appointment.status === "CANCELLED"
-                    ? "bg-red-900/20 border-red-900/30 text-red-400"
-                    : "bg-amber-900/20 border-amber-900/30 text-amber-400"
+                  appointment.status === 'COMPLETED'
+                    ? 'bg-emerald-900/20 border-emerald-900/30 text-emerald-400'
+                    : appointment.status === 'CANCELLED'
+                      ? 'bg-red-900/20 border-red-900/30 text-red-400'
+                      : 'bg-amber-900/20 border-amber-900/30 text-amber-400'
                 }
               >
                 {appointment.status}
@@ -398,9 +399,9 @@ export function AppointmentCard({
             {appointment.patientDescription && (
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">
-                  {userRole === "DOCTOR"
-                    ? "Patient Description"
-                    : "Your Description"}
+                  {userRole === 'DOCTOR'
+                    ? 'Patient Description'
+                    : 'Your Description'}
                 </h4>
                 <div className="p-3 rounded-md bg-muted/20 border border-emerald-900/20">
                   <p className="text-white whitespace-pre-line">
@@ -411,7 +412,7 @@ export function AppointmentCard({
             )}
 
             {/* Join Video Call Button */}
-            {appointment.status === "SCHEDULED" && (
+            {appointment.status === 'SCHEDULED' && (
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">
                   Video Consultation
@@ -419,11 +420,11 @@ export function AppointmentCard({
                 <Button
                   className="w-full bg-emerald-600 hover:bg-emerald-700"
                   disabled={
-                    !isAppointmentActive() || action === "video" || tokenLoading
+                    !isAppointmentActive() || action === 'video' || tokenLoading
                   }
                   onClick={handleJoinVideoCall}
                 >
-                  {tokenLoading || action === "video" ? (
+                  {tokenLoading || action === 'video' ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Preparing Video Call...
@@ -432,8 +433,8 @@ export function AppointmentCard({
                     <>
                       <Video className="h-4 w-4 mr-2" />
                       {isAppointmentActive()
-                        ? "Join Video Call"
-                        : "Video call will be available 30 minutes before appointment"}
+                        ? 'Join Video Call'
+                        : 'Video call will be available 30 minutes before appointment'}
                     </>
                   )}
                 </Button>
@@ -446,22 +447,22 @@ export function AppointmentCard({
                 <h4 className="text-sm font-medium text-muted-foreground">
                   Doctor Notes
                 </h4>
-                {userRole === "DOCTOR" &&
-                  action !== "notes" &&
-                  appointment.status !== "CANCELLED" && (
+                {userRole === 'DOCTOR' &&
+                  action !== 'notes' &&
+                  appointment.status !== 'CANCELLED' && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setAction("notes")}
+                      onClick={() => setAction('notes')}
                       className="h-7 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/20"
                     >
                       <Edit className="h-3.5 w-3.5 mr-1" />
-                      {appointment.notes ? "Edit" : "Add"}
+                      {appointment.notes ? 'Edit' : 'Add'}
                     </Button>
                   )}
               </div>
 
-              {userRole === "DOCTOR" && action === "notes" ? (
+              {userRole === 'DOCTOR' && action === 'notes' ? (
                 <div className="space-y-3">
                   <Textarea
                     value={notes}
@@ -476,7 +477,7 @@ export function AppointmentCard({
                       size="sm"
                       onClick={() => {
                         setAction(null);
-                        setNotes(appointment.notes || "");
+                        setNotes(appointment.notes || '');
                       }}
                       disabled={notesLoading}
                       className="border-emerald-900/30"
@@ -495,7 +496,7 @@ export function AppointmentCard({
                           Saving...
                         </>
                       ) : (
-                        "Save Notes"
+                        'Save Notes'
                       )}
                     </Button>
                   </div>
@@ -540,7 +541,7 @@ export function AppointmentCard({
               )}
 
               {/* Cancel Button - For scheduled appointments */}
-              {appointment.status === "SCHEDULED" && (
+              {appointment.status === 'SCHEDULED' && (
                 <Button
                   variant="outline"
                   onClick={handleCancelAppointment}

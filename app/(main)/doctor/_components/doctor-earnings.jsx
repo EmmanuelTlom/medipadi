@@ -1,19 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  TrendingUp,
-  Calendar,
+  AlertCircle,
   BarChart3,
+  Calendar,
+  Coins,
   CreditCard,
   Loader2,
-  AlertCircle,
-  Coins,
-} from "lucide-react";
+  TrendingUp,
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -21,17 +18,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { requestPayout } from "@/actions/payout";
-import useFetch from "@/hooks/use-fetch";
-import { toast } from "sonner";
+} from '@/components/ui/dialog';
+import { useEffect, useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { format } from 'date-fns';
+import { requestPayout } from '@/actions/payout';
+import { toast } from 'sonner';
+import useFetch from '@/hooks/use-fetch';
 
 export function DoctorEarnings({ earnings, payouts = [] }) {
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);
-  const [paypalEmail, setPaypalEmail] = useState("");
+  const [paypalEmail, setPaypalEmail] = useState('');
 
   const {
     thisMonthEarnings = 0,
@@ -46,19 +47,19 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
 
   // Check if there's any pending payout
   const pendingPayout = payouts.find(
-    (payout) => payout.status === "PROCESSING"
+    (payout) => payout.status === 'PROCESSING',
   );
 
   const handlePayoutRequest = async (e) => {
     e.preventDefault();
 
     if (!paypalEmail) {
-      toast.error("PayPal email is required");
+      toast.error('PayPal email is required');
       return;
     }
 
     const formData = new FormData();
-    formData.append("paypalEmail", paypalEmail);
+    formData.append('paypalEmail', paypalEmail);
 
     await submitPayoutRequest(formData);
   };
@@ -66,8 +67,8 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
   useEffect(() => {
     if (data?.success) {
       setShowPayoutDialog(false);
-      setPaypalEmail("");
-      toast.success("Payout request submitted successfully!");
+      setPaypalEmail('');
+      toast.success('Payout request submitted successfully!');
     }
   }, [data]);
 
@@ -199,7 +200,7 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
                   </div>
                   <div>
                     <p className="text-muted-foreground">PayPal Email</p>
-                    <p className="text-white font-medium text-xs">
+                    <p className="text-white font-medium text-xs break-words">
                       {pendingPayout.paypalEmail}
                     </p>
                   </div>
@@ -275,7 +276,7 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
                   >
                     <div>
                       <p className="text-white font-medium">
-                        {format(new Date(payout.createdAt), "MMM d, yyyy")}
+                        {format(new Date(payout.createdAt), 'MMM d, yyyy')}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {payout.credits} credits • $
@@ -288,9 +289,9 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
                     <Badge
                       variant="outline"
                       className={
-                        payout.status === "PROCESSED"
-                          ? "bg-emerald-900/20 border-emerald-900/30 text-emerald-400"
-                          : "bg-amber-900/20 border-amber-900/30 text-amber-400"
+                        payout.status === 'PROCESSED'
+                          ? 'bg-emerald-900/20 border-emerald-900/30 text-emerald-400'
+                          : 'bg-amber-900/20 border-amber-900/30 text-amber-400'
                       }
                     >
                       {payout.status}
@@ -363,7 +364,7 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-sm">
                 Once processed by admin, {availableCredits} credits will be
-                deducted from your account and ${availablePayout.toFixed(2)}{" "}
+                deducted from your account and ${availablePayout.toFixed(2)}{' '}
                 will be sent to your PayPal.
               </AlertDescription>
             </Alert>
@@ -389,7 +390,7 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
                     Requesting...
                   </>
                 ) : (
-                  "Request Payout"
+                  'Request Payout'
                 )}
               </Button>
             </DialogFooter>

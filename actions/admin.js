@@ -1,13 +1,13 @@
 "use server";
 
-import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 /**
  * Verifies if current user has admin role
  */
-export async function verifyAdmin() {
+export async function verifyAdmin () {
   const { userId } = await auth();
 
   if (!userId) {
@@ -31,7 +31,7 @@ export async function verifyAdmin() {
 /**
  * Gets all doctors with pending verification
  */
-export async function getPendingDoctors() {
+export async function getPendingDoctors () {
   const isAdmin = await verifyAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
@@ -55,7 +55,7 @@ export async function getPendingDoctors() {
 /**
  * Gets all verified doctors
  */
-export async function getVerifiedDoctors() {
+export async function getVerifiedDoctors () {
   const isAdmin = await verifyAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
@@ -80,7 +80,7 @@ export async function getVerifiedDoctors() {
 /**
  * Updates a doctor's verification status
  */
-export async function updateDoctorStatus(formData) {
+export async function updateDoctorStatus (formData) {
   const isAdmin = await verifyAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
@@ -112,7 +112,7 @@ export async function updateDoctorStatus(formData) {
 /**
  * Suspends or reinstates a doctor
  */
-export async function updateDoctorActiveStatus(formData) {
+export async function updateDoctorActiveStatus (formData) {
   const isAdmin = await verifyAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
@@ -146,7 +146,7 @@ export async function updateDoctorActiveStatus(formData) {
 /**
  * Gets all pending payouts that need admin approval
  */
-export async function getPendingPayouts() {
+export async function getPendingPayouts () {
   const isAdmin = await verifyAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 
@@ -161,6 +161,8 @@ export async function getPendingPayouts() {
             id: true,
             name: true,
             email: true,
+            firstName: true,
+            lastName: true,
             specialty: true,
             credits: true,
           },
@@ -181,7 +183,7 @@ export async function getPendingPayouts() {
 /**
  * Approves a payout request and deducts credits from doctor's account
  */
-export async function approvePayout(formData) {
+export async function approvePayout (formData) {
   const isAdmin = await verifyAdmin();
   if (!isAdmin) throw new Error("Unauthorized");
 

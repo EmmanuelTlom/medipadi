@@ -23,6 +23,10 @@ export default async function OnboardingLayout({ children }) {
       }
     } else if (user.role === "ADMIN") {
       redirect("/admin");
+    } else if (user.role === "AGENT") {
+      redirect("/agent");
+    } else if (user.role === "PROVIDER") {
+      redirect("/provider");
     }
   }
 

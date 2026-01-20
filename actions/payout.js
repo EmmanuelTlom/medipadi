@@ -1,7 +1,7 @@
 "use server";
 
-import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 const CREDIT_VALUE = 10; // $10 per credit total
@@ -11,7 +11,7 @@ const DOCTOR_EARNINGS_PER_CREDIT = 8; // $8 to doctor
 /**
  * Request payout for all remaining credits
  */
-export async function requestPayout(formData) {
+export async function requestPayout (formData) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -89,7 +89,7 @@ export async function requestPayout(formData) {
 /**
  * Get doctor's payout history
  */
-export async function getDoctorPayouts() {
+export async function getDoctorPayouts () {
   const { userId } = await auth();
 
   if (!userId) {
@@ -126,7 +126,7 @@ export async function getDoctorPayouts() {
 /**
  * Get doctor's earnings summary
  */
-export async function getDoctorEarnings() {
+export async function getDoctorEarnings () {
   const { userId } = await auth();
 
   if (!userId) {
@@ -191,5 +191,56 @@ export async function getDoctorEarnings() {
     };
   } catch (error) {
     throw new Error("Failed to fetch doctor earnings: " + error.message);
+  }
+}
+
+// Add wallet funding functionality
+/**
+ * Fund agent's wallet
+ */
+export async function fundWallet (agentId, amount) {
+  if (!agentId || amount <= 0) {
+    throw new Error("Invalid agent ID or amount");
+  }
+
+  try {
+    const agent = await db.user.findUnique({
+      where: { id: agentId, role: "AGENT" },
+    });
+
+    if (!agent) {
+      throw new Error("Agent not found");
+    }
+
+    const balanceBefore = agent.walletBalance;
+    const balanceAfter = balanceBefore + amount;
+
+    // Update wallet balance and create transaction record
+    await db.$transaction([
+      db.user.update({
+        where: { id: agentId },
+        data: { walletBalance: balanceAfter },
+      }),
+      db.walletTransaction.create({
+        data: {
+          userId: agentId,
+          amount,
+          type: "DEPOSIT",
+          description: `Wallet deposit of $${amount.toFixed(2)}`,
+          balanceBefore,
+          balanceAfter,
+        },
+      }),
+    ]);
+
+    const updatedAgent = await db.user.findUnique({
+      where: { id: agentId },
+    });
+
+    revalidatePath("/agent");
+    return updatedAgent;
+  } catch (error) {
+    console.error("Failed to fund wallet:", error);
+    throw new Error("Failed to fund wallet");
   }
 }

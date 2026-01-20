@@ -1,35 +1,36 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Card,
   CardContent,
   CardDescription,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { User, Stethoscope, Loader2 } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/card';
+import { Loader2, Stethoscope, User, UserCheck, Building2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { setUserRole } from "@/actions/onboarding";
-import { doctorFormSchema } from "@/lib/schema";
-import { SPECIALTIES } from "@/lib/specialities";
-import useFetch from "@/hooks/use-fetch";
-import { useEffect } from "react";
+} from '@/components/ui/select';
+import { useEffect, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { SPECIALTIES } from '@/lib/specialities';
+import { Textarea } from '@/components/ui/textarea';
+import { doctorFormSchema } from '@/lib/schema';
+import { fundWallet } from '@/actions/payout';
+import { setUserRole } from '@/actions/onboarding';
+import useFetch from '@/hooks/use-fetch';
+import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function OnboardingPage() {
-  const [step, setStep] = useState("choose-role");
+  const [step, setStep] = useState('choose-role');
   const router = useRouter();
 
   // Custom hook for user role server action
@@ -45,22 +46,42 @@ export default function OnboardingPage() {
   } = useForm({
     resolver: zodResolver(doctorFormSchema),
     defaultValues: {
-      specialty: "",
+      specialty: '',
       experience: undefined,
-      credentialUrl: "",
-      description: "",
+      credentialUrl: '',
+      description: '',
     },
   });
 
   // Watch specialty value for controlled select component
-  const specialtyValue = watch("specialty");
+  const specialtyValue = watch('specialty');
 
   // Handle patient role selection
   const handlePatientSelection = async () => {
     if (loading) return;
 
     const formData = new FormData();
-    formData.append("role", "PATIENT");
+    formData.append('role', 'PATIENT');
+
+    await submitUserRole(formData);
+  };
+
+  // Handle agent role selection
+  const handleAgentSelection = async () => {
+    if (loading) return;
+
+    const formData = new FormData();
+    formData.append('role', 'AGENT');
+
+    await submitUserRole(formData);
+  };
+
+  // Handle provider role selection
+  const handleProviderSelection = async () => {
+    if (loading) return;
+
+    const formData = new FormData();
+    formData.append('role', 'PROVIDER');
 
     await submitUserRole(formData);
   };
@@ -76,19 +97,19 @@ export default function OnboardingPage() {
     if (loading) return;
 
     const formData = new FormData();
-    formData.append("role", "DOCTOR");
-    formData.append("specialty", data.specialty);
-    formData.append("experience", data.experience.toString());
-    formData.append("credentialUrl", data.credentialUrl);
-    formData.append("description", data.description);
+    formData.append('role', 'DOCTOR');
+    formData.append('specialty', data.specialty);
+    formData.append('experience', data.experience.toString());
+    formData.append('credentialUrl', data.credentialUrl);
+    formData.append('description', data.description);
 
     await submitUserRole(formData);
   };
 
   // Role selection screen
-  if (step === "choose-role") {
+  if (step === 'choose-role') {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card
           className="border-emerald-900/20 hover:border-emerald-700/40 cursor-pointer transition-all"
           onClick={() => !loading && handlePatientSelection()}
@@ -114,7 +135,7 @@ export default function OnboardingPage() {
                   Processing...
                 </>
               ) : (
-                "Continue as Patient"
+                'Continue as Patient'
               )}
             </Button>
           </CardContent>
@@ -122,7 +143,7 @@ export default function OnboardingPage() {
 
         <Card
           className="border-emerald-900/20 hover:border-emerald-700/40 cursor-pointer transition-all"
-          onClick={() => !loading && setStep("doctor-form")}
+          onClick={() => !loading && setStep('doctor-form')}
         >
           <CardContent className="pt-6 pb-6 flex flex-col items-center text-center">
             <div className="p-4 bg-emerald-900/20 rounded-full mb-4">
@@ -143,12 +164,72 @@ export default function OnboardingPage() {
             </Button>
           </CardContent>
         </Card>
+
+        <Card
+          className="border-emerald-900/20 hover:border-emerald-700/40 cursor-pointer transition-all"
+          onClick={() => !loading && handleAgentSelection()}
+        >
+          <CardContent className="pt-6 pb-6 flex flex-col items-center text-center">
+            <div className="p-4 bg-emerald-900/20 rounded-full mb-4">
+              <UserCheck className="h-8 w-8 text-emerald-400" />
+            </div>
+            <CardTitle className="text-xl font-semibold text-white mb-2">
+              Join as an Agent
+            </CardTitle>
+            <CardDescription className="mb-4">
+              Help members register, fund wallets, and manage subscriptions
+            </CardDescription>
+            <Button
+              className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Continue as Agent'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="border-emerald-900/20 hover:border-emerald-700/40 cursor-pointer transition-all"
+          onClick={() => !loading && handleProviderSelection()}
+        >
+          <CardContent className="pt-6 pb-6 flex flex-col items-center text-center">
+            <div className="p-4 bg-emerald-900/20 rounded-full mb-4">
+              <Building2 className="h-8 w-8 text-emerald-400" />
+            </div>
+            <CardTitle className="text-xl font-semibold text-white mb-2">
+              Join as a Provider
+            </CardTitle>
+            <CardDescription className="mb-4">
+              Verify members, submit claims, and provide healthcare services
+            </CardDescription>
+            <Button
+              className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Continue as Provider'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   // Doctor registration form
-  if (step === "doctor-form") {
+  if (step === 'doctor-form') {
     return (
       <Card className="border-emerald-900/20">
         <CardContent className="pt-6">
@@ -166,7 +247,7 @@ export default function OnboardingPage() {
               <Label htmlFor="specialty">Medical Specialty</Label>
               <Select
                 value={specialtyValue}
-                onValueChange={(value) => setValue("specialty", value)}
+                onValueChange={(value) => setValue('specialty', value)}
               >
                 <SelectTrigger id="specialty">
                   <SelectValue placeholder="Select your specialty" />
@@ -197,7 +278,7 @@ export default function OnboardingPage() {
                 id="experience"
                 type="number"
                 placeholder="e.g. 5"
-                {...register("experience", { valueAsNumber: true })}
+                {...register('experience', { valueAsNumber: true })}
               />
               {errors.experience && (
                 <p className="text-sm font-medium text-red-500 mt-1">
@@ -212,7 +293,7 @@ export default function OnboardingPage() {
                 id="credentialUrl"
                 type="url"
                 placeholder="https://example.com/my-medical-degree.pdf"
-                {...register("credentialUrl")}
+                {...register('credentialUrl')}
               />
               {errors.credentialUrl && (
                 <p className="text-sm font-medium text-red-500 mt-1">
@@ -230,7 +311,7 @@ export default function OnboardingPage() {
                 id="description"
                 placeholder="Describe your expertise, services, and approach to patient care..."
                 rows="4"
-                {...register("description")}
+                {...register('description')}
               />
               {errors.description && (
                 <p className="text-sm font-medium text-red-500 mt-1">
@@ -243,7 +324,7 @@ export default function OnboardingPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setStep("choose-role")}
+                onClick={() => setStep('choose-role')}
                 className="border-emerald-900/30"
                 disabled={loading}
               >
@@ -260,13 +341,63 @@ export default function OnboardingPage() {
                     Submitting...
                   </>
                 ) : (
-                  "Submit for Verification"
+                  'Submit for Verification'
                 )}
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
+    );
+  }
+
+  // Add wallet funding form for agents
+  function WalletFundingForm() {
+    const [amount, setAmount] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('');
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      setMessage('');
+
+      try {
+        const agentId = 'agent-id-placeholder'; // Replace with actual agent ID
+        await fundWallet(agentId, amount);
+        setMessage('Wallet funded successfully!');
+      } catch (error) {
+        setMessage('Failed to fund wallet: ' + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <label
+          htmlFor="amount"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Amount to Fund
+        </label>
+        <input
+          type="number"
+          id="amount"
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          className="block w-full p-2 border border-gray-300 rounded-md"
+          required
+        />
+        <button
+          type="submit"
+          className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+          disabled={loading}
+        >
+          {loading ? 'Processing...' : 'Fund Wallet'}
+        </button>
+        {message && <p className="text-sm text-gray-600 mt-2">{message}</p>}
+      </form>
     );
   }
 }

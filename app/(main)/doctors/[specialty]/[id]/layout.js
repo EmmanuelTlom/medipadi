@@ -1,18 +1,18 @@
+import { PageHeader } from "@/components/page-header";
 import { getDoctorById } from "@/actions/appointments";
 import { redirect } from "next/navigation";
-import { PageHeader } from "@/components/page-header";
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata ({ params }) {
   const { id } = await params;
 
   const { doctor } = await getDoctorById(id);
   return {
-    title: `Dr. ${doctor.name} - MediPadi`,
-    description: `Book an appointment with Dr. ${doctor.name}, ${doctor.specialty} specialist with ${doctor.experience} years of experience.`,
+    title: `Dr. ${doctor.firstName} ${doctor.lastName} - MediPadi`,
+    description: `Book an appointment with Dr. ${doctor.firstName}, ${doctor.specialty} specialist with ${doctor.experience} years of experience.`,
   };
 }
 
-export default async function DoctorProfileLayout({ children, params }) {
+export default async function DoctorProfileLayout ({ children, params }) {
   const { id } = await params;
   const { doctor } = await getDoctorById(id);
 
@@ -22,7 +22,7 @@ export default async function DoctorProfileLayout({ children, params }) {
     <div className="container mx-auto">
       <PageHeader
         // icon={<Stethoscope />}
-        title={"Dr. " + doctor.name}
+        title={doctor.firstName + " " + doctor.lastName}
         backLink={`/doctors/${doctor.specialty}`}
         backLabel={`Back to ${doctor.specialty}`}
       />

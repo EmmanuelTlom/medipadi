@@ -1,32 +1,31 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { getDoctorAppointments, getDoctorAvailability } from "@/actions/doctor";
-import { AvailabilitySettings } from "./_components/availability-settings";
-import { getCurrentUser } from "@/actions/onboarding";
-import { redirect } from "next/navigation";
-import { Calendar, Clock, DollarSign } from "lucide-react";
-import DoctorAppointmentsList from "./_components/appointments-list";
-import { getDoctorEarnings, getDoctorPayouts } from "@/actions/payout";
-import { DoctorEarnings } from "./_components/doctor-earnings";
+import { Calendar, Clock, DollarSign } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getDoctorEarnings, getDoctorPayouts } from '@/actions/payout';
+
+import { AvailabilitySettings } from './_components/availability-settings';
+import DoctorAppointmentsList from './_components/appointments-list';
+import { DoctorEarnings } from './_components/doctor-earnings';
+import { getCurrentUser } from '@/actions/onboarding';
+import { getWeeklyAvailability } from '@/actions/doctor';
+import { redirect } from 'next/navigation';
 
 export default async function DoctorDashboardPage() {
   const user = await getCurrentUser();
 
-  const [appointmentsData, availabilityData, earningsData, payoutsData] =
-    await Promise.all([
-      getDoctorAppointments(),
-      getDoctorAvailability(),
-      getDoctorEarnings(),
-      getDoctorPayouts(),
-    ]);
+  const [weeklySchedule, earningsData, payoutsData] = await Promise.all([
+    getWeeklyAvailability(),
+    getDoctorEarnings(),
+    getDoctorPayouts(),
+  ]);
 
   //   // Redirect if not a doctor
-  if (user?.role !== "DOCTOR") {
-    redirect("/onboarding");
+  if (user?.role !== 'DOCTOR') {
+    redirect('/onboarding');
   }
 
   // If already verified, redirect to dashboard
-  if (user?.verificationStatus !== "VERIFIED") {
-    redirect("/doctor/verification");
+  if (user?.verificationStatus !== 'VERIFIED') {
+    redirect('/doctor/verification');
   }
 
   return (
@@ -59,12 +58,10 @@ export default async function DoctorDashboardPage() {
       </TabsList>
       <div className="md:col-span-3">
         <TabsContent value="appointments" className="border-none p-0">
-          <DoctorAppointmentsList
-            appointments={appointmentsData.appointments || []}
-          />
+          <DoctorAppointmentsList />
         </TabsContent>
         <TabsContent value="availability" className="border-none p-0">
-          <AvailabilitySettings slots={availabilityData.slots || []} />
+          <AvailabilitySettings weeklySchedule={weeklySchedule || []} />
         </TabsContent>
         <TabsContent value="earnings" className="border-none p-0">
           <DoctorEarnings
