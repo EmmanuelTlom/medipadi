@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
 import { submitClaim } from "@/actions/claims";
 
-export async function POST (request) {
+export async function POST (request: NextRequest) {
     try {
         const { userId } = await auth();
 
@@ -32,7 +33,7 @@ export async function POST (request) {
             );
         }
 
-        const claim = await submitClaim(
+        const data = await submitClaim(
             provider.id,
             memberId,
             amount,
@@ -42,10 +43,9 @@ export async function POST (request) {
 
         return NextResponse.json({
             success: true,
-            claim,
+            data,
         });
     } catch (error) {
-        console.error("Error submitting claim:", error);
         return NextResponse.json(
             { error: error.message || "Failed to submit claim" },
             { status: 500 }

@@ -8,85 +8,100 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { DollarSign, FileText, Search } from 'lucide-react';
+import { useForm, useRequest } from 'alova/client';
 
 import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Member } from '@/interfaces/users';
 import { Textarea } from '@/components/ui/textarea';
+import { alova } from '@/lib/alova';
 import { toast } from 'sonner';
-import useFetch from '@/hooks/use-fetch';
-import { useState } from 'react';
 
 export function ClaimSubmission({ user }) {
-  const [formData, setFormData] = useState({
-    membershipId: '',
-    amount: '',
-    description: '',
-    serviceDate: new Date().toISOString().split('T')[0],
+  const {
+    data,
+    loading: verifying,
+    send: verifyMember,
+    update,
+  } = useRequest(
+    (membershipId: string) =>
+      alova.Get<Member>('/api/provider/verify-member', {
+        params: {
+          membershipId,
+        },
+      }),
+    {
+      immediate: false,
+    },
+  )
+    .onSuccess(({ data }) => {
+      toast.success(`Member verified: ${data.firstName} ${data.lastName}`);
+    })
+    .onError(({ error }) => {
+      update({ data: undefined });
+      toast.error(error.message || 'Failed to verify member');
+    });
+
+  const {
+    form: formData,
+    loading: submitting,
+    send: submitClaimFn,
+    onError,
+    onSuccess,
+    updateForm: setFormData,
+  } = useForm(
+    (form) =>
+      alova.Post('/api/provider/submit-claim', form, {
+        name: 'submit-claim',
+      }),
+    {
+      resetAfterSubmiting: true,
+      initialForm: {
+        memberId: data ? data.id : '',
+        amount: 0,
+        description: '',
+        serviceDate: new Date().toISOString().split('T')[0],
+      },
+    },
+  );
+
+  onSuccess(() => {
+    toast.success('Claim submitted successfully!');
+    update({ data: undefined });
   });
-  const [verifiedMember, setVerifiedMember] = useState(null);
 
-  const { loading: verifyingMember, fn: verifyMember } = useFetch(
-    async (membershipId) => {
-      const response = await fetch(
-        `/api/provider/verify-member?membershipId=${membershipId}`,
-      );
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to verify member');
-      }
-      return response.json();
-    },
-  );
+  onError(({ error }) => {
+    toast.error(error.message || 'Failed to submit claim');
+  });
 
-  const { loading: submittingClaim, fn: submitClaimFn } = useFetch(
-    async (memberId, amount, description, serviceDate) => {
-      const response = await fetch('/api/provider/submit-claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId, amount, description, serviceDate }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to submit claim');
-      }
-      return response.json();
-    },
-  );
-
-  const handleInputChange = (e) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setFormData({
-      ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
   const handleVerifyMember = async () => {
-    if (!formData.membershipId) {
+    if (!formData.memberId) {
       toast.error('Please enter a membership ID');
       return;
     }
 
-    try {
-      const member = await verifyMember(formData.membershipId);
-      setVerifiedMember(member);
-      toast.success(`Member verified: ${member.firstName} ${member.lastName}`);
-    } catch (error) {
-      setVerifiedMember(null);
-      toast.error(error.message);
-    }
+    await verifyMember(formData.memberId);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!verifiedMember) {
+    if (!data) {
       toast.error('Please verify the member first');
       return;
     }
 
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+    if (!formData.amount || formData.amount <= 0) {
       toast.error('Please enter a valid claim amount');
       return;
     }
@@ -96,30 +111,8 @@ export function ClaimSubmission({ user }) {
       return;
     }
 
-    try {
-      await submitClaimFn(
-        verifiedMember.id,
-        parseFloat(formData.amount),
-        formData.description,
-        formData.serviceDate,
-      );
-
-      toast.success('Claim submitted successfully!');
-
-      // Reset form
-      setFormData({
-        membershipId: '',
-        amount: '',
-        description: '',
-        serviceDate: new Date().toISOString().split('T')[0],
-      });
-      setVerifiedMember(null);
-    } catch (error) {
-      toast.error(error.message || 'Failed to submit claim');
-    }
+    await submitClaimFn();
   };
-
-  const loading = verifyingMember || submittingClaim;
 
   return (
     <div className="space-y-6">
@@ -138,22 +131,22 @@ export function ClaimSubmission({ user }) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Member Verification */}
             <div className="space-y-2">
-              <Label htmlFor="membershipId">Member ID</Label>
+              <Label htmlFor="memberId">Member ID</Label>
               <div className="flex gap-2">
                 <Input
-                  id="membershipId"
-                  name="membershipId"
+                  id="memberId"
+                  name="memberId"
                   type="text"
                   placeholder="MED1234567890"
-                  value={formData.membershipId}
+                  value={formData.memberId}
                   onChange={handleInputChange}
-                  disabled={loading}
+                  disabled={submitting || verifying}
                   className="flex-1"
                 />
                 <Button
                   type="button"
                   onClick={handleVerifyMember}
-                  disabled={loading || !formData.membershipId}
+                  disabled={submitting || verifying || !formData.memberId}
                   variant="outline"
                   className="border-blue-900/30"
                 >
@@ -167,7 +160,7 @@ export function ClaimSubmission({ user }) {
             </div>
 
             {/* Verified Member Info */}
-            {verifiedMember && (
+            {data && (
               <Card className="bg-blue-950/20 border-blue-900/30">
                 <CardContent className="pt-6">
                   <div className="space-y-2">
@@ -176,7 +169,7 @@ export function ClaimSubmission({ user }) {
                         Member Name:
                       </span>
                       <span className="text-sm font-semibold">
-                        {verifiedMember.firstName} {verifiedMember.lastName}
+                        {data.firstName} {data.lastName}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -184,7 +177,7 @@ export function ClaimSubmission({ user }) {
                         Member ID:
                       </span>
                       <span className="text-sm font-mono">
-                        {verifiedMember.membershipId}
+                        {data.membershipId}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -192,12 +185,12 @@ export function ClaimSubmission({ user }) {
                         Status:
                       </span>
                       <span
-                        className={`text-sm font-semibold ${verifiedMember.isActive ? 'text-green-400' : 'text-red-400'}`}
+                        className={`text-sm font-semibold ${data.isActive ? 'text-green-400' : 'text-red-400'}`}
                       >
-                        {verifiedMember.isActive ? 'Active' : 'Inactive'}
+                        {data.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </div>
-                    {!verifiedMember.isActive && (
+                    {!data.isActive && (
                       <div className="bg-red-950/20 border border-red-900/30 rounded-md p-2 mt-2">
                         <p className="text-xs text-red-400">
                           Warning: Member subscription has expired. Claims may
@@ -219,7 +212,7 @@ export function ClaimSubmission({ user }) {
                 type="date"
                 value={formData.serviceDate}
                 onChange={handleInputChange}
-                disabled={loading}
+                disabled={submitting || verifying}
                 max={new Date().toISOString().split('T')[0]}
               />
             </div>
@@ -239,7 +232,7 @@ export function ClaimSubmission({ user }) {
                   className="pl-10"
                   step="0.01"
                   min="0"
-                  disabled={loading || !verifiedMember}
+                  disabled={submitting || verifying || !data}
                 />
               </div>
             </div>
@@ -253,7 +246,7 @@ export function ClaimSubmission({ user }) {
                 placeholder="Describe the services provided..."
                 value={formData.description}
                 onChange={handleInputChange}
-                disabled={loading || !verifiedMember}
+                disabled={submitting || verifying || !data}
                 rows={4}
               />
               <p className="text-xs text-muted-foreground">
@@ -261,15 +254,16 @@ export function ClaimSubmission({ user }) {
               </p>
             </div>
 
-            {loading && <BarLoader width="100%" color="#3b82f6" />}
+            {submitting ||
+              (verifying && <BarLoader width="100%" color="#3b82f6" />)}
 
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={loading || !verifiedMember}
+              disabled={submitting || verifying || !data}
             >
               <FileText className="h-4 w-4 mr-2" />
-              {submittingClaim ? 'Submitting...' : 'Submit Claim'}
+              {submitting ? 'Submitting...' : 'Submit Claim'}
             </Button>
           </form>
         </CardContent>

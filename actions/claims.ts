@@ -7,8 +7,13 @@ import { verifyAdmin } from "./admin";
  * Submit a claim request
  */
 export async function submitClaim (
-    providerId: string, memberId: string, amount: number, description: string, serviceDate: string) {
-    if (!providerId || !memberId || amount <= 0) {
+    providerId: string,
+    memberId: string,
+    amount: string,
+    description: string,
+    serviceDate: string
+) {
+    if (!providerId || !memberId || parseFloat(amount) <= 0) {
         throw new Error("Invalid claim details");
     }
 
@@ -21,8 +26,14 @@ export async function submitClaim (
             throw new Error("Provider not found");
         }
 
-        const member = await db.user.findUnique({
-            where: { id: memberId, role: "PATIENT" },
+        const member = await db.user.findFirst({
+            where: {
+                OR: [
+                    { id: memberId },
+                    { membershipId: memberId },
+                ],
+                role: "PATIENT",
+            },
         });
 
         if (!member) {
@@ -32,8 +43,8 @@ export async function submitClaim (
         const claim = await db.claim.create({
             data: {
                 providerId,
-                memberId,
-                amount,
+                memberId: member.id,
+                amount: parseFloat(amount),
                 description: description || "",
                 serviceDate: serviceDate ? new Date(serviceDate) : new Date(),
                 status: "PENDING",
@@ -42,8 +53,7 @@ export async function submitClaim (
 
         return claim;
     } catch (error) {
-        console.error("Failed to submit claim:", error);
-        throw new Error("Failed to submit claim");
+        throw new Error("Failed to submit claim: " + (error as Error).message);
     }
 }
 

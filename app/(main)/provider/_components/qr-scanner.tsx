@@ -15,26 +15,51 @@ import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Member } from '@/interfaces/users';
+import { Scanner } from '@yudiel/react-qr-scanner';
+import { alova } from '@/lib/alova';
 import { toast } from 'sonner';
-import useFetch from '@/hooks/use-fetch';
+import { useRequest } from 'alova/client';
 
-export function QRScanner({ onMemberVerified }) {
+export function QRScanner({
+  onMemberVerified,
+}: {
+  onMemberVerified?: (member: Member) => void;
+}) {
   const [membershipId, setMembershipId] = useState('');
-  const [verifiedMember, setVerifiedMember] = useState(null);
   const [scanMode, setScanMode] = useState(false);
-  const videoRef = useRef(null);
-  const [stream, setStream] = useState(null);
 
-  const { loading, fn: verifyMember } = useFetch(async (id) => {
-    const response = await fetch(
-      `/api/provider/verify-member?membershipId=${id}`,
-    );
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to verify member');
-    }
-    return response.json();
-  });
+  const {
+    data,
+    loading,
+    send: verifyMember,
+    update,
+  } = useRequest(
+    (membershipId: string) =>
+      alova.Get<Member>('/api/provider/verify-member', {
+        params: {
+          membershipId,
+        },
+      }),
+    {
+      immediate: false,
+    },
+  )
+    .onSuccess(({ data }) => {
+      toast.success(`Member verified: ${data.firstName} ${data.lastName}`);
+
+      // Pass member data to parent if callback provided
+      if (onMemberVerified) {
+        onMemberVerified(data);
+      }
+    })
+    .onError(({ error }) => {
+      update({ data: undefined });
+      toast.error(error.message || 'Failed to verify member');
+    })
+    .onComplete(() => {
+      setScanMode(false);
+    });
 
   const handleVerify = async () => {
     if (!membershipId) {
@@ -42,49 +67,10 @@ export function QRScanner({ onMemberVerified }) {
       return;
     }
 
-    try {
-      const member = await verifyMember(membershipId);
-      setVerifiedMember(member);
-      toast.success(`Member verified: ${member.firstName} ${member.lastName}`);
-
-      // Pass member data to parent if callback provided
-      if (onMemberVerified) {
-        onMemberVerified(member);
-      }
-    } catch (error) {
-      setVerifiedMember(null);
-      toast.error(error.message);
-    }
+    await verifyMember(membershipId);
   };
 
-  const startCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-
-      setStream(mediaStream);
-      setScanMode(true);
-      toast.info("Camera started. Point at member's QR code.");
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast.error('Failed to access camera. Please check permissions.');
-    }
-  };
-
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
-    }
-    setScanMode(false);
-  };
-
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string | Date) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -94,7 +80,7 @@ export function QRScanner({ onMemberVerified }) {
   };
 
   const clearVerification = () => {
-    setVerifiedMember(null);
+    update({ data: undefined });
     setMembershipId('');
   };
 
@@ -123,7 +109,9 @@ export function QRScanner({ onMemberVerified }) {
                     type="text"
                     placeholder="MED1234567890"
                     value={membershipId}
-                    onChange={(e) => setMembershipId(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setMembershipId(e.target.value)
+                    }
                     disabled={loading}
                     className="flex-1"
                   />
@@ -151,7 +139,7 @@ export function QRScanner({ onMemberVerified }) {
               </div>
 
               <Button
-                onClick={startCamera}
+                onClick={() => setScanMode(true)}
                 variant="outline"
                 className="w-full border-purple-900/30"
               >
@@ -163,11 +151,9 @@ export function QRScanner({ onMemberVerified }) {
             <>
               {/* Camera View */}
               <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-cover"
+                <Scanner
+                  onScan={([result]) => verifyMember(result.rawValue)}
+                  onError={(error: Error) => toast.error(error.message)}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="border-2 border-purple-400 w-64 h-64 rounded-lg" />
@@ -178,34 +164,16 @@ export function QRScanner({ onMemberVerified }) {
                 Position the QR code within the frame
               </p>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex gap-2">
                 <Button
-                  onClick={stopCamera}
+                  onClick={() => setScanMode(false)}
                   variant="outline"
-                  className="border-red-900/30"
+                  className="border-red-900/30 flex-1"
+                  disabled={loading}
                 >
                   <XCircle className="h-4 w-4 mr-2" />
                   Stop Camera
                 </Button>
-                <Button
-                  onClick={() => {
-                    // In a real implementation, this would trigger QR code detection
-                    toast.info(
-                      'QR code scanning functionality requires additional library',
-                    );
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <QrCode className="h-4 w-4 mr-2" />
-                  Capture
-                </Button>
-              </div>
-
-              <div className="bg-yellow-950/20 border border-yellow-900/30 rounded-md p-3">
-                <p className="text-xs text-yellow-400">
-                  Note: Full QR code scanning requires the react-qr-scanner
-                  library. For now, please use manual entry above.
-                </p>
               </div>
             </>
           )}
@@ -215,7 +183,7 @@ export function QRScanner({ onMemberVerified }) {
       </Card>
 
       {/* Verified Member Info */}
-      {verifiedMember && (
+      {data && (
         <Card className="border-emerald-900/20 bg-emerald-950/10">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -232,32 +200,32 @@ export function QRScanner({ onMemberVerified }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-semibold text-white">
-                  {verifiedMember.firstName} {verifiedMember.lastName}
+                <p className="font-semibold text-white wrap-anywhere">
+                  {data.firstName} {data.lastName}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Member ID</p>
-                <p className="font-mono text-sm font-semibold text-white">
-                  {verifiedMember.membershipId}
+                <p className="font-mono text-sm font-semibold text-white wrap-anywhere">
+                  {data.membershipId}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="text-sm text-white">{verifiedMember.email}</p>
+                <p className="text-sm text-white wrap-anywhere">{data.email}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="text-sm text-white">
-                  {verifiedMember.phoneNumber || 'N/A'}
+                <p className="text-sm text-white wrap-anywhere">
+                  {data.phoneNumber || 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
                   Subscription Expires
                 </p>
-                <p className="text-sm text-white">
-                  {formatDate(verifiedMember.subscriptionEnd)}
+                <p className="text-sm text-white wrap-anywhere">
+                  {formatDate(data.subscriptionEnd)}
                 </p>
               </div>
               <div>
@@ -265,17 +233,17 @@ export function QRScanner({ onMemberVerified }) {
                 <Badge
                   variant="outline"
                   className={
-                    verifiedMember.isActive
+                    data.isActive
                       ? 'bg-green-950/20 text-green-400 border-green-900/30'
                       : 'bg-red-950/20 text-red-400 border-red-900/30'
                   }
                 >
-                  {verifiedMember.isActive ? 'Active' : 'Inactive'}
+                  {data.isActive ? 'Active' : 'Inactive'}
                 </Badge>
               </div>
             </div>
 
-            {!verifiedMember.isActive && (
+            {!data.isActive && (
               <div className="bg-red-950/20 border border-red-900/30 rounded-md p-3">
                 <p className="text-sm text-red-400">
                   ⚠️ This member's subscription has expired. Claims may not be

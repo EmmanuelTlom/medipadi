@@ -1,6 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import {
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  DollarSign,
+  FileText,
+  XCircle,
+} from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -8,38 +17,44 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { ClaimStatus, User } from '@prisma/client';
+
 import { Badge } from '@/components/ui/badge';
-import {
-  FileText,
-  CheckCircle,
-  Clock,
-  XCircle,
-  Calendar,
-  DollarSign,
-} from 'lucide-react';
-import useFetch from '@/hooks/use-fetch';
 import { BarLoader } from 'react-spinners';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getProviderClaims } from '@/lib/requests/claims';
+import { usePagination } from 'alova/client';
+import { useState } from 'react';
 
-async function getProviderClaims(providerId) {
-  const response = await fetch(`/api/provider/claims?providerId=${providerId}`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch claims');
-  }
-  return response.json();
-}
-
-export function ClaimHistory({ user }) {
-  const {
-    loading,
-    data: claims,
-    fn: fetchClaims,
-  } = useFetch(getProviderClaims, {
-    autoRun: true,
-    autoRunArgs: [user.id],
+export function ClaimHistory({ user }: { user: User }) {
+  const [meta, setMeta] = useState({
+    pending: 0,
+    processed: 0,
+    approvedAmount: 0,
   });
 
-  const getStatusIcon = (status) => {
+  const {
+    data: claims,
+    loading,
+    page,
+    update,
+    pageCount,
+    isLastPage,
+  } = usePagination(getProviderClaims(user.id), {
+    immediate: true,
+    total: (response) => response.meta.totalCount,
+    initialData: { data: [], meta: { totalCount: 0 } },
+    initialPageSize: 15,
+  }).onSuccess(({ data }) => {
+    setMeta({
+      pending: data.pending,
+      processed: data.processed,
+      approvedAmount: data.approvedAmount,
+    });
+  });
+
+  const getStatusIcon = (status: ClaimStatus) => {
     switch (status) {
       case 'APPROVED':
         return <CheckCircle className="h-4 w-4 text-green-400" />;
@@ -50,7 +65,7 @@ export function ClaimHistory({ user }) {
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: ClaimStatus) => {
     const variants = {
       PENDING: 'bg-yellow-950/20 text-yellow-400 border-yellow-900/30',
       APPROVED: 'bg-green-950/20 text-green-400 border-green-900/30',
@@ -65,21 +80,13 @@ export function ClaimHistory({ user }) {
     );
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
   };
-
-  const totalClaims = claims?.length || 0;
-  const pendingClaims =
-    claims?.filter((c) => c.status === 'PENDING').length || 0;
-  const approvedAmount =
-    claims
-      ?.filter((c) => c.status === 'APPROVED')
-      .reduce((sum, c) => sum + c.amount, 0) || 0;
 
   return (
     <div className="space-y-6">
@@ -90,7 +97,9 @@ export function ClaimHistory({ user }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Claims</p>
-                <p className="text-2xl font-bold text-white">{totalClaims}</p>
+                <p className="text-2xl font-bold text-white">
+                  {meta.pending + meta.processed}
+                </p>
               </div>
               <FileText className="h-8 w-8 text-blue-400" />
             </div>
@@ -103,7 +112,7 @@ export function ClaimHistory({ user }) {
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
                 <p className="text-2xl font-bold text-yellow-400">
-                  {pendingClaims}
+                  {meta.pending}
                 </p>
               </div>
               <Clock className="h-8 w-8 text-yellow-400" />
@@ -117,7 +126,7 @@ export function ClaimHistory({ user }) {
               <div>
                 <p className="text-sm text-muted-foreground">Approved Amount</p>
                 <p className="text-2xl font-bold text-green-400">
-                  ${approvedAmount.toFixed(2)}
+                  ${meta.approvedAmount.toFixed(2)}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-green-400" />
@@ -137,7 +146,22 @@ export function ClaimHistory({ user }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading && <BarLoader width="100%" color="#3b82f6" />}
+          {loading && (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i} className="bg-muted/5 border-muted/10">
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-5 w-1/4" />
+                      <Skeleton className="h-6 w-20" />
+                      <div className="flex-1" />
+                    </div>
+                    <Skeleton className="h-3 w-full mt-2" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {!loading && (!claims || claims.length === 0) && (
             <div className="text-center py-8">
@@ -212,6 +236,33 @@ export function ClaimHistory({ user }) {
                   </CardContent>
                 </Card>
               ))}
+
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between pt-4 border-t mt-4">
+                <div className="text-sm text-muted-foreground">
+                  Page {page || 1} of {pageCount || 1}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => update({ page: page - 1 })}
+                    disabled={loading || page === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => update({ page: page + 1 })}
+                    disabled={loading || isLastPage}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

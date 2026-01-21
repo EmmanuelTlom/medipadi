@@ -1,17 +1,12 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/actions/onboarding';
-import {
-  Stethoscope,
-  ClipboardList,
-  FileText,
-  History,
-  QrCode,
-} from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
-import { ClaimSubmission } from './_components/claim-submission';
+import { FileText, History, QrCode, Stethoscope } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { ClaimHistory } from './_components/claim-history';
+import { ClaimSubmission } from './_components/claim-submission';
+import { PageHeader } from '@/components/page-header';
 import { QRScanner } from './_components/qr-scanner';
+import { getCurrentUser } from '@/actions/onboarding';
+import { redirect } from 'next/navigation';
 
 export default async function ProviderDashboardPage() {
   const user = await getCurrentUser();

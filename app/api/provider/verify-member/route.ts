@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
 
-export async function GET (request) {
+export async function GET (request: NextRequest) {
     try {
         const { userId } = await auth();
 
@@ -51,6 +52,8 @@ export async function GET (request) {
             id: member.id,
             name: `${member.firstName} ${member.lastName}`,
             email: member.email,
+            firstName: member.firstName,
+            lastName: member.lastName,
             phoneNumber: member.phoneNumber,
             membershipId: member.membershipId,
             subscriptionEnd: member.subscriptionEnd,

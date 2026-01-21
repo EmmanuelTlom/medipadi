@@ -15,7 +15,7 @@ import { generateQRCode } from '@/lib/server.utils';
 
 async function MembershipID() {
   const user = await checkUser();
-  const qrCode = await generateQRCode(user.id);
+  const qrCode = await generateQRCode(user.membershipId);
 
   // Check if renewal is needed (example: if credits are 0 or lastCreditAllocation is more than 30 days ago)
   const needsRenewal = user.credits === 0;
@@ -56,7 +56,7 @@ async function MembershipID() {
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Membership ID</p>
               <p className="text-lg font-mono text-white bg-muted/20 p-3 rounded-lg border border-emerald-900/20">
-                {user.id}
+                {user.membershipId}
               </p>
             </div>
             {qrCode && (

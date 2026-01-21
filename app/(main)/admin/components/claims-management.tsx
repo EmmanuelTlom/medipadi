@@ -464,7 +464,7 @@ export function ClaimsManagement() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => update({ page: page + 1 })}
+                    onClick={() => update({ page: page - 1 })}
                     disabled={loading || page === 1}
                   >
                     <ChevronLeft className="w-4 h-4 mr-1" />

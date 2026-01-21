@@ -31,6 +31,7 @@ export async function GET (request: NextRequest) {
                 createdAt: 'desc',
             },
         }).withPages({
+            includePageCount: true,
             limit: request.nextUrl.searchParams.get("limit")
                 ? parseInt(request.nextUrl.searchParams.get("limit") as string, 10)
                 : 10,

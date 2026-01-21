@@ -1,13 +1,14 @@
 "use server";
 
-import { db } from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 /**
  * Sets the user's role and related information
  */
-export async function setUserRole(formData) {
+export async function setUserRole (formData: FormData) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -21,7 +22,7 @@ export async function setUserRole(formData) {
 
   if (!user) throw new Error("User not found in database");
 
-  const role = formData.get("role");
+  const role = formData.get("role") as UserRole;
 
   if (!role || !["PATIENT", "DOCTOR"].includes(role)) {
     throw new Error("Invalid role selection");
@@ -46,7 +47,7 @@ export async function setUserRole(formData) {
     // For doctor role - need additional information
     if (role === "DOCTOR") {
       const specialty = formData.get("specialty");
-      const experience = parseInt(formData.get("experience"), 10);
+      const experience = parseInt(formData.get("experience") as string, 10);
       const credentialUrl = formData.get("credentialUrl");
       const description = formData.get("description");
 
@@ -61,10 +62,10 @@ export async function setUserRole(formData) {
         },
         data: {
           role: "DOCTOR",
-          specialty,
+          specialty: specialty as string,
           experience,
-          credentialUrl,
-          description,
+          credentialUrl: credentialUrl as string,
+          description: description as string,
           verificationStatus: "PENDING",
         },
       });
@@ -81,7 +82,7 @@ export async function setUserRole(formData) {
 /**
  * Gets the current user's complete profile information
  */
-export async function getCurrentUser() {
+export async function getCurrentUser () {
   const { userId } = await auth();
 
   if (!userId) {
@@ -89,9 +90,9 @@ export async function getCurrentUser() {
   }
 
   try {
-    const user = await db.user.findUnique({
+    const user = await db.user.findFirst({
       where: {
-        clerkUserId: userId,
+        OR: [{ clerkUserId: userId }, { id: userId }],
       },
     });
 
