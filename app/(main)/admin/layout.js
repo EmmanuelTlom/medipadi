@@ -1,8 +1,9 @@
-import { verifyAdmin } from "@/actions/admin";
-import { redirect } from "next/navigation";
+import { AlertCircle, BarChart3, CreditCard, FileText, Package, ShieldCheck, UserCheck, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShieldCheck, AlertCircle, Users, CreditCard, UserCheck, BarChart3, FileText } from "lucide-react";
+
 import { PageHeader } from "@/components/page-header";
+import { redirect } from "next/navigation";
+import { verifyAdmin } from "@/actions/admin";
 
 export const metadata = {
   title: "Admin Settings - MediPadi",
@@ -27,7 +28,7 @@ export default async function AdminLayout ({ children }) {
         defaultValue="pending"
         className="grid grid-cols-1 md:grid-cols-4 gap-6"
       >
-        <TabsList className="md:col-span-1 bg-muted/30 border h-14 md:h-96 flex sm:flex-row md:flex-col w-full p-2 md:p-1 rounded-md md:space-y-2 sm:space-x-2 md:space-x-0">
+        <TabsList className="md:col-span-1 bg-muted/30 border h-14 md:h-auto flex sm:flex-row md:flex-col w-full p-2 md:p-1 rounded-md md:space-y-2 sm:space-x-2 md:space-x-0">
           <TabsTrigger
             value="pending"
             className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
@@ -76,6 +77,13 @@ export default async function AdminLayout ({ children }) {
           >
             <BarChart3 className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Reports</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="plans"
+            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
+          >
+            <Package className="h-4 w-4 mr-2 hidden md:inline" />
+            <span>Plans</span>
           </TabsTrigger>
         </TabsList>
         <div className="md:col-span-3">{children}</div>

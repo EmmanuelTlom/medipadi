@@ -13,11 +13,11 @@ import { deductCreditsForAppointment } from "@/actions/credits";
 import { revalidatePath } from "next/cache";
 
 // Initialize Vonage Video API client
+const options = {};
 const credentials = new Auth({
   applicationId: process.env.NEXT_PUBLIC_VONAGE_APPLICATION_ID,
   privateKey: process.env.VONAGE_PRIVATE_KEY,
 });
-const options = {};
 const vonage = new Vonage(credentials, options);
 
 /**
@@ -149,7 +149,6 @@ export async function bookAppointment (formData: FormData) {
       throw new ValidationException(`Validation error`, fieldErrors);
     }
 
-    console.error("Failed to book appointment:", error);
     throw new Error("Failed to book appointment:" + (error as Error).message);
   }
 }
@@ -292,9 +291,9 @@ export async function getDoctorById (doctorId) {
 }
 
 /**
- * Get available time slots for booking for the next 4 days
+ * Get available time slots for booking for the next 7 days
  */
-export async function getAvailableTimeSlots (doctorId) {
+export async function getAvailableTimeSlots (doctorId: string) {
   try {
     // Validate doctor existence and verification
     const doctor = await db.user.findUnique({
@@ -309,24 +308,28 @@ export async function getAvailableTimeSlots (doctorId) {
       throw new Error("Doctor not found or not verified");
     }
 
-    // Fetch a single availability record
-    const availability = await db.availability.findFirst({
+    // Fetch weekly availability schedule
+    const weeklyAvailability = await db.weeklyAvailability.findMany({
       where: {
         doctorId: doctor.id,
-        status: "AVAILABLE",
+        isActive: true,
+      },
+      orderBy: {
+        dayOfWeek: "asc",
       },
     });
 
-    if (!availability) {
-      throw new Error("No availability set by doctor");
+    // If no availability is set, return empty slots instead of throwing error
+    if (!weeklyAvailability || weeklyAvailability.length === 0) {
+      return { days: [] };
     }
 
-    // Get the next 4 days
+    // Get the next 7 days
     const now = new Date();
-    const days = [now, addDays(now, 1), addDays(now, 2), addDays(now, 3)];
+    const days = Array.from({ length: 7 }, (_, i) => addDays(now, i));
 
-    // Fetch existing appointments for the doctor over the next 4 days
-    const lastDay = endOfDay(days[3]);
+    // Fetch existing appointments for the doctor over the next 7 days
+    const lastDay = endOfDay(days[6]);
     const existingAppointments = await db.appointment.findMany({
       where: {
         doctorId: doctor.id,
@@ -339,26 +342,31 @@ export async function getAvailableTimeSlots (doctorId) {
 
     const availableSlotsByDay = {};
 
-    // For each of the next 4 days, generate available slots
+    // For each of the next 7 days, generate available slots
     for (const day of days) {
       const dayString = format(day, "yyyy-MM-dd");
+      const dayOfWeek = day.getDay(); // 0=Sunday, 1=Monday, etc.
       availableSlotsByDay[dayString] = [];
 
-      // Create a copy of the availability start/end times for this day
-      const availabilityStart = new Date(availability.startTime);
-      const availabilityEnd = new Date(availability.endTime);
+      // Find availability for this day of week
+      const dayAvailability = weeklyAvailability.find(
+        (avail) => avail.dayOfWeek === dayOfWeek
+      );
 
-      // Set the day to the current day we're processing
-      availabilityStart.setFullYear(
-        day.getFullYear(),
-        day.getMonth(),
-        day.getDate()
-      );
-      availabilityEnd.setFullYear(
-        day.getFullYear(),
-        day.getMonth(),
-        day.getDate()
-      );
+      if (!dayAvailability) {
+        continue; // No availability set for this day
+      }
+
+      // Parse time strings (HH:mm format)
+      const [startHour, startMin] = dayAvailability.startTime.split(":").map(Number);
+      const [endHour, endMin] = dayAvailability.endTime.split(":").map(Number);
+
+      // Create start and end times for this specific day
+      const availabilityStart = new Date(day);
+      availabilityStart.setHours(startHour, startMin, 0, 0);
+
+      const availabilityEnd = new Date(day);
+      availabilityEnd.setHours(endHour, endMin, 0, 0);
 
       let current = new Date(availabilityStart);
       const end = new Date(availabilityEnd);

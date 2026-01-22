@@ -157,14 +157,14 @@ export function DoctorProfile({ doctor, availableDays }) {
                   <Calendar className="h-5 w-5 text-emerald-400 mr-2" />
                   <p className="text-muted-foreground">
                     {totalSlots} time slots available for booking over the next
-                    4 days
+                    7 days
                   </p>
                 </div>
               ) : (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    No available slots for the next 4 days. Please check back
+                    No available slots for the next 7 days. Please check back
                     later.
                   </AlertDescription>
                 </Alert>
@@ -214,7 +214,7 @@ export function DoctorProfile({ doctor, availableDays }) {
                     </h3>
                     <p className="text-muted-foreground">
                       This doctor doesn&apos;t have any available appointment
-                      slots for the next 4 days. Please check back later or try
+                      slots for the next 7 days. Please check back later or try
                       another doctor.
                     </p>
                   </div>

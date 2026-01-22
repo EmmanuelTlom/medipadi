@@ -1,40 +1,11 @@
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft, CreditCard, Shield, Check } from 'lucide-react';
-import { PricingTable } from '@clerk/nextjs';
+import { ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 import Pricing from '@/components/pricing';
-import { createPaymentSession } from '@/lib/payments';
-
-function PaymentButton({ amount, currency }) {
-  const handlePayment = async () => {
-    try {
-      const session = await createPaymentSession(
-        amount,
-        currency,
-        'https://example.com/success',
-        'https://example.com/cancel',
-      );
-
-      window.location.href = session.url;
-    } catch (error) {
-      console.error('Payment failed:', error);
-      alert('Payment failed. Please try again.');
-    }
-  };
-
-  return (
-    <button
-      onClick={handlePayment}
-      className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-    >
-      Pay Now
-    </button>
-  );
-}
+import { getCurrentUser } from '@/actions/onboarding';
 
 export default async function PricingPage() {
+  const user = await getCurrentUser();
   return (
     <div className="container mx-auto px-4 py-12">
       {/* Header Section */}
@@ -66,15 +37,10 @@ export default async function PricingPage() {
         </p>
       </div>
 
-      {/* Pricing Table Section */}
-      {/* <Pricing /> */}
+      {/* Pricing Cards Section */}
+      <Pricing user={user} />
 
-      {/* Payment Button Section */}
-      <div className="max-w-md mx-auto mb-12">
-        <PaymentButton amount={5000} currency="usd" />
-      </div>
-
-      {/* FAQ Section - Optional */}
+      {/* FAQ Section */}
       <div className="max-w-3xl mx-auto mt-16 text-center">
         <h2 className="text-2xl font-bold text-white mb-2">
           Questions? We're Here to Help

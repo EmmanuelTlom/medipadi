@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useEffect, useState } from 'react';
 import { useForm, useRequest } from 'alova/client';
 
 import { BarLoader } from 'react-spinners';
@@ -28,7 +29,16 @@ import { ValidationException } from '@/lib/Exceptions/ValidationException';
 import { alova } from '@/lib/alova';
 import { getUser } from '@/lib/requests/users';
 import { toast } from 'sonner';
-import { useState } from 'react';
+
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  credits: number;
+  duration: number;
+}
 
 export function MemberRegistration({
   user,
@@ -39,11 +49,25 @@ export function MemberRegistration({
   const [error, setError] = useState<
     ValidationException<typeof formData> | undefined
   >(new ValidationException(''));
+  const [subscriptionPlans, setSubscriptionPlans] = useState<
+    SubscriptionPlan[]
+  >([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
 
-  const subscriptionPlans = {
-    monthly: 20,
-    yearly: 200, // ~16.67/month, saving $40
-  };
+  // Fetch subscription plans on mount
+  useEffect(() => {
+    fetch('/api/subscription-plans')
+      .then((res) => res.json())
+      .then((data) => {
+        setSubscriptionPlans(data.plans || []);
+        setLoadingPlans(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch subscription plans:', err);
+        toast.error('Failed to load subscription plans');
+        setLoadingPlans(false);
+      });
+  }, []);
 
   const { send } = useRequest(getUser(), {
     initialData: { data: user },
@@ -117,13 +141,21 @@ export function MemberRegistration({
       return;
     }
 
-    // Check wallet balance
-    const subscriptionCost = subscriptionPlans[formData.planType];
+    // Get selected plan cost
+    const selectedPlan = subscriptionPlans.find(
+      (p) => p.slug === formData.planType,
+    );
+    if (!selectedPlan) {
+      toast.error('Invalid subscription plan selected');
+      return;
+    }
+
+    const subscriptionCost = selectedPlan.price;
     const walletBalance = user.walletBalance || 0;
 
     if (walletBalance < subscriptionCost) {
       toast.error(
-        `Insufficient wallet balance. Required: $${subscriptionCost}, Available: $${walletBalance.toFixed(2)}`,
+        `Insufficient wallet balance. Required: ₦${subscriptionCost}, Available: ₦${walletBalance.toFixed(2)}`,
       );
       return;
     }
@@ -135,7 +167,10 @@ export function MemberRegistration({
     await registerMember();
   };
 
-  const selectedPlanCost = subscriptionPlans[formData.planType];
+  const selectedPlan = subscriptionPlans.find(
+    (p) => p.slug === formData.planType,
+  );
+  const selectedPlanCost = selectedPlan?.price || 0;
   const walletBalance = user.walletBalance || 0;
   const hasSufficientFunds = walletBalance >= selectedPlanCost;
 
@@ -238,26 +273,27 @@ export function MemberRegistration({
                 onValueChange={(value) =>
                   setFormData({ ...formData, planType: value })
                 }
-                disabled={loading}
+                disabled={loading || loadingPlans}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a plan" />
+                  <SelectValue
+                    placeholder={
+                      loadingPlans ? 'Loading plans...' : 'Select a plan'
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monthly">
-                    <div className="flex items-center justify-between w-full">
-                      <span>Monthly Plan</span>
-                      <span className="ml-4 text-emerald-400">$20/month</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="yearly">
-                    <div className="flex items-center justify-between w-full">
-                      <span>Yearly Plan</span>
-                      <span className="ml-4 text-emerald-400">
-                        $200/year (Save $40)
-                      </span>
-                    </div>
-                  </SelectItem>
+                  {subscriptionPlans.map((plan) => (
+                    <SelectItem key={plan.id} value={plan.slug}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{plan.name}</span>
+                        <span className="ml-4 text-emerald-400">
+                          ₦{plan.price}/{plan.duration === 1 ? 'month' : 'year'}
+                          {plan.duration > 1 && ` (${plan.credits} credits)`}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FieldError errors={error.errors?.planType} />
@@ -269,16 +305,24 @@ export function MemberRegistration({
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Subscription Cost:</span>
-                    <span className="font-semibold">${selectedPlanCost}</span>
+                    <span className="font-semibold">₦{selectedPlanCost}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Your Wallet Balance:</span>
                     <span
                       className={`font-semibold ${hasSufficientFunds ? 'text-emerald-400' : 'text-red-400'}`}
                     >
-                      ${walletBalance.toFixed(2)}
+                      ₦{walletBalance.toFixed(2)}
                     </span>
                   </div>
+                  {selectedPlan && (
+                    <div className="flex justify-between text-sm">
+                      <span>Credits Included:</span>
+                      <span className="font-semibold text-emerald-400">
+                        {selectedPlan.credits} credits
+                      </span>
+                    </div>
+                  )}
                   <div className="border-t border-emerald-900/30 pt-2 mt-2">
                     <div className="flex justify-between font-bold">
                       <span>Balance After Registration:</span>
@@ -289,7 +333,7 @@ export function MemberRegistration({
                             : 'text-red-400'
                         }
                       >
-                        ${(walletBalance - selectedPlanCost).toFixed(2)}
+                        ₦{(walletBalance - selectedPlanCost).toFixed(2)}
                       </span>
                     </div>
                   </div>

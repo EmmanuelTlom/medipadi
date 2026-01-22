@@ -28,10 +28,10 @@ model User {
   lastCreditAllocation DateTime?
   membershipId         String?              @unique
   subscriptionEnd      DateTime?
+  planId               String?
   agentId              String?
   doctorAppointments   Appointment[]        @relation("DoctorAppointments")
   patientAppointments  Appointment[]        @relation("PatientAppointments")
-  availabilities       Availability[]
   transactions         CreditTransaction[]
   walletTransactions   WalletTransaction[]
   payouts              Payout[]
@@ -39,6 +39,7 @@ model User {
   providerClaims       Claim[]              @relation("ProviderClaims")
   agent                User?                @relation("AgentMembers", fields: [agentId], references: [id], onDelete: SetNull)
   registeredMembers    User[]               @relation("AgentMembers")
+  plan                 SubscriptionPlan?    @relation(fields: [planId], references: [id], onDelete: SetNull)
   weeklyAvailability   WeeklyAvailability[]
 }
 
@@ -57,15 +58,20 @@ model WeeklyAvailability {
   @@index([doctorId, isActive])
 }
 
-model Availability {
-  id        String     @id @default(uuid())
-  doctorId  String
-  startTime DateTime
-  endTime   DateTime
-  status    SlotStatus @default(AVAILABLE)
-  doctor    User       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+model SubscriptionPlan {
+  id          String   @id @default(uuid())
+  name        String   @unique // "Monthly Plan", "Yearly Plan"
+  slug        String   @unique // "monthly", "yearly"
+  description String?
+  price       Float // Price in local currency
+  credits     Int // Credits allocated per plan
+  duration    Int // Duration in months (1 for monthly, 12 for yearly)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
 
-  @@index([doctorId, startTime])
+  @@index([slug, isActive])
 }
 
 model Appointment {
@@ -163,12 +169,6 @@ enum VerificationStatus {
   PENDING
   VERIFIED
   REJECTED
-}
-
-enum SlotStatus {
-  AVAILABLE
-  BOOKED
-  BLOCKED
 }
 
 enum AppointmentStatus {

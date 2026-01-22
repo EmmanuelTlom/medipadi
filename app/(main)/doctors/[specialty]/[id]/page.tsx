@@ -1,6 +1,7 @@
-import { getDoctorById, getAvailableTimeSlots } from "@/actions/appointments";
-import { DoctorProfile } from "./_components/doctor-profile";
-import { redirect } from "next/navigation";
+import { getAvailableTimeSlots, getDoctorById } from '@/actions/appointments';
+
+import { DoctorProfile } from './_components/doctor-profile';
+import { redirect } from 'next/navigation';
 
 export default async function DoctorProfilePage({ params }) {
   const { id } = await params;
@@ -19,7 +20,7 @@ export default async function DoctorProfilePage({ params }) {
       />
     );
   } catch (error) {
-    console.error("Error loading doctor profile:", error);
-    redirect("/doctors");
+    console.error('Error loading doctor profile:', error);
+    redirect('/doctors');
   }
 }

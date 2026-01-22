@@ -28,8 +28,8 @@ Ensure you have the following environment variables configured in `.env.local`:
 
 **Required for Payments:**
 
-- `STRIPE_SECRET_KEY`
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `PAYSTACK_SECRET_KEY`
+- `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`
 
 **Optional (for notifications):**
 
@@ -102,7 +102,7 @@ await sendSMSNotification('+1234567890', 'Test message');
 
 ### Payments
 
-Test Stripe integration:
+Test Paystack integration:
 
 1. Go to `/pricing`
 2. Click on a payment button
@@ -207,7 +207,7 @@ npx prisma migrate reset
 
 - Email notifications (needs Gmail credentials)
 - SMS notifications (needs Twilio account)
-- Payment processing (needs Stripe setup)
+- Payment processing (needs Paystack setup)
 - Agent wallet funding UI (backend ready, needs frontend)
 - Provider claim submission UI (backend ready, needs frontend)
 

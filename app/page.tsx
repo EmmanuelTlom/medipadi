@@ -1,13 +1,17 @@
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, Stethoscope } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Pricing from "@/components/pricing";
-import { creditBenefits, features, testimonials } from "@/lib/data";
+import { ArrowRight, Stethoscope } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { creditBenefits, features, testimonials } from '@/lib/data';
 
-export default function Home() {
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import Link from 'next/link';
+import Pricing from '@/components/pricing';
+import { getCurrentUser } from '@/actions/onboarding';
+
+export default async function Home() {
+  const user = await getCurrentUser();
+
   return (
     <div className="bg-background">
       {/* Hero Section */}
@@ -120,7 +124,7 @@ export default function Home() {
 
           <div className="mx-auto">
             {/* Clerk Pricing Table */}
-            <Pricing />
+            <Pricing user={user} />
 
             {/* Description */}
             <Card className="mt-12 bg-muted/20 border-emerald-900/30">

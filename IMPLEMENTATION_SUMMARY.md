@@ -75,7 +75,6 @@ This document summarizes the features implemented to align the MediPadi platform
 - **Stripe Integration**: Created `/lib/payments.js` with Stripe checkout session creation
 - **Payment Button Component**: Added payment button to pricing page
 - **Multi-channel Support**: Infrastructure ready for mobile money, USSD, and POS
-- **Payment Session Creation**: `createPaymentSession()` function for Stripe payments
 
 #### Technical Details:
 

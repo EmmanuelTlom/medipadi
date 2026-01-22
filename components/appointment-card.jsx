@@ -240,7 +240,7 @@ export function AppointmentCard({
                 <h3 className="font-medium text-white">
                   {userRole === 'DOCTOR'
                     ? otherParty.firstName + ' ' + otherParty.lastName
-                    : `${otherParty.firstName} ${otherParty.lastName}`}
+                    : `Dr. ${otherParty.firstName} ${otherParty.lastName}`}
                 </h3>
                 {userRole === 'DOCTOR' && (
                   <p className="text-sm text-muted-foreground">

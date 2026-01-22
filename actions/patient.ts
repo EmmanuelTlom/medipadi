@@ -1,10 +1,10 @@
-import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/prisma";
 
 /**
  * Get all appointments for the authenticated patient
  */
-export async function getPatientAppointments() {
+export async function getPatientAppointments () {
   const { userId } = await auth();
 
   if (!userId) {
@@ -35,6 +35,8 @@ export async function getPatientAppointments() {
           select: {
             id: true,
             name: true,
+            firstName: true,
+            lastName: true,
             specialty: true,
             imageUrl: true,
           },
@@ -43,11 +45,11 @@ export async function getPatientAppointments() {
       orderBy: {
         startTime: "asc",
       },
+      take: 15,
     });
 
     return { appointments };
   } catch (error) {
-    console.error("Failed to get patient appointments:", error);
     return { error: "Failed to fetch appointments" };
   }
 }

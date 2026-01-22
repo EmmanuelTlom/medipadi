@@ -185,9 +185,14 @@ export default async function Header() {
           )}
 
           <SignedOut>
-            <SignInButton>
-              <Button variant="secondary">Sign In</Button>
-            </SignInButton>
+            <Link href="/sign-in">
+              <Button
+                variant="secondary"
+                className="inline-flex items-center gap-2 cursor-pointer"
+              >
+                Sign In
+              </Button>
+            </Link>
           </SignedOut>
 
           <SignedIn>

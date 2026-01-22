@@ -65,7 +65,7 @@ MediPadi is a comprehensive healthcare platform that connects patients with heal
 
 ### Payment Integration
 
-- Stripe integration for card payments
+- Paystack integration for card payments (Nigeria)
 - Support for mobile money (implementation ready)
 - USSD support (implementation ready)
 - POS support (implementation ready)
@@ -117,7 +117,7 @@ MediPadi is a comprehensive healthcare platform that connects patients with heal
 - **Authentication**: Clerk
 - **UI**: Tailwind CSS with Radix UI components
 - **Video**: Vonage Video API
-- **Payments**: Stripe
+- **Payments**: Paystack
 - **Notifications**: Nodemailer (email), Twilio (SMS/WhatsApp)
 - **QR Codes**: qrcode library
 
@@ -136,9 +136,9 @@ NEXT_PUBLIC_VONAGE_APPLICATION_ID=
 VONAGE_API_KEY=
 VONAGE_API_SECRET=
 
-# Stripe
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+# Paystack
+PAYSTACK_SECRET_KEY=
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=
 
 # Email (Nodemailer)
 EMAIL_USER=
@@ -184,8 +184,8 @@ pnpm dev
 
 ### Payments
 
-- `POST /api/create-checkout-session` - Create Stripe payment session
-- `POST /api/webhooks/stripe` - Handle Stripe webhooks
+- `POST /api/initialize-payment` - Initialize Paystack payment session
+- `POST /api/webhooks/paystack` - Handle Paystack webhooks
 
 ### Video
 
@@ -275,7 +275,7 @@ For technical support or questions, contact:
 1. **User Authentication**: All routes are protected with Clerk authentication
 2. **Role-Based Access**: Middleware checks user roles before granting access
 3. **Data Validation**: Server-side validation for all user inputs
-4. **Payment Security**: Stripe handles all payment processing securely
+4. **Payment Security**: Paystack handles all payment processing securely
 5. **API Protection**: Server actions validate user permissions
 6. **Database Security**: Prisma provides SQL injection protection
 

@@ -40,6 +40,26 @@ export async function POST (request: NextRequest) {
             subscriptionCost,
         } = validatedData;
 
+        // Fetch the subscription plan from database
+        const subscriptionPlan = await db.subscriptionPlan.findUnique({
+            where: { slug: planType, isActive: true },
+        });
+
+        if (!subscriptionPlan) {
+            return NextResponse.json(
+                { error: "Invalid or inactive subscription plan" },
+                { status: 400 }
+            );
+        }
+
+        // Verify the cost matches the plan price
+        if (subscriptionCost !== subscriptionPlan.price) {
+            return NextResponse.json(
+                { error: "Subscription cost mismatch" },
+                { status: 400 }
+            );
+        }
+
         // Check agent wallet balance
         if (agent.walletBalance < subscriptionCost) {
             return NextResponse.json(
@@ -66,16 +86,11 @@ export async function POST (request: NextRequest) {
         // Generate membership ID
         const membershipId = `MED${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
-        // Calculate subscription end date
+        // Calculate subscription end date based on plan duration
         const subscriptionEnd = new Date();
-        if (planType === "monthly") {
-            subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
-        } else if (planType === "yearly") {
-            subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
-        }
+        subscriptionEnd.setMonth(subscriptionEnd.getMonth() + subscriptionPlan.duration);
 
-        // Create user in database with initial credits (monthly: 10, yearly: 120)
-        const initialCredits = planType === "monthly" ? 10 : 120;
+        // Create user in database with initial credits from plan
         const newMember = await db.user.create({
             data: {
                 clerkUserId: clerkUser.id,
@@ -86,9 +101,10 @@ export async function POST (request: NextRequest) {
                 role: "PATIENT",
                 membershipId,
                 subscriptionEnd,
-                credits: initialCredits,
+                credits: subscriptionPlan.credits,
                 lastCreditAllocation: new Date(),
                 agentId: agent.id,
+                planId: subscriptionPlan.id,
             },
         });
 
@@ -96,9 +112,9 @@ export async function POST (request: NextRequest) {
         await db.creditTransaction.create({
             data: {
                 userId: newMember.id,
-                amount: initialCredits,
+                amount: subscriptionPlan.credits,
                 type: "CREDIT_PURCHASE",
-                packageId: planType === "monthly" ? "monthly-plan" : "yearly-plan",
+                packageId: subscriptionPlan.id,
             },
         });
 

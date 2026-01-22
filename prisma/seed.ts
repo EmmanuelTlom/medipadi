@@ -10,6 +10,39 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 const alt = async () => {
+    // Create subscription plans first
+    console.log('Creating subscription plans...');
+
+    const monthlyPlan = await prisma.subscriptionPlan.upsert({
+        where: { slug: 'monthly' },
+        update: {},
+        create: {
+            name: 'Monthly Plan',
+            slug: 'monthly',
+            description: 'Monthly subscription with 10 credits',
+            price: 20.00,
+            credits: 10,
+            duration: 1,
+            isActive: true,
+        },
+    });
+
+    const yearlyPlan = await prisma.subscriptionPlan.upsert({
+        where: { slug: 'yearly' },
+        update: {},
+        create: {
+            name: 'Yearly Plan',
+            slug: 'yearly',
+            description: 'Yearly subscription with 120 credits',
+            price: 200.00,
+            credits: 120,
+            duration: 12,
+            isActive: true,
+        },
+    });
+
+    console.log(`✓ Created ${monthlyPlan.name} and ${yearlyPlan.name}`);
+
     const makeUsers = (count: number) => Array.from({ length: count }).map(
         () => (['ADMIN', 'AGENT', 'PROVIDER', 'DOCTOR', 'PATIENT'] as const).map(role => {
             const username = faker.internet
@@ -115,53 +148,37 @@ const alt = async () => {
 
             counts.payouts += 1;
 
-            console.log('Creating doctor availabilities...');
-            const now = new Date();
-            for (let day = 1; day <= 7; day++) {
-                const date = new Date(now);
-                date.setDate(date.getDate() + day);
+            console.log('Creating doctor weekly availability...');
+            // Create weekly availability schedules
+            // Monday to Friday: 9:00 AM - 5:00 PM
+            // Saturday: 9:00 AM - 1:00 PM
+            // Sunday: Off
+            const weeklySchedules = [
+                { dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isActive: true }, // Monday
+                { dayOfWeek: 2, startTime: '09:00', endTime: '17:00', isActive: true }, // Tuesday
+                { dayOfWeek: 3, startTime: '09:00', endTime: '17:00', isActive: true }, // Wednesday
+                { dayOfWeek: 4, startTime: '09:00', endTime: '17:00', isActive: true }, // Thursday
+                { dayOfWeek: 5, startTime: '09:00', endTime: '17:00', isActive: true }, // Friday
+                { dayOfWeek: 6, startTime: '09:00', endTime: '13:00', isActive: faker.datatype.boolean() }, // Saturday (random)
+            ];
 
-                // Morning slot
-                const morning = new Date(date);
-                morning.setHours(9, 0, 0, 0);
-                const morningEnd = new Date(morning);
-                morningEnd.setHours(10, 0, 0, 0);
-
-                await prisma.availability.upsert({
+            for (const schedule of weeklySchedules) {
+                await prisma.weeklyAvailability.upsert({
                     where: {
-                        id: `${user.id}-morning-${day}`,
+                        id: `${user.id}-day-${schedule.dayOfWeek}`,
                     },
                     update: {},
                     create: {
-                        id: `${user.id}-morning-${day}`,
+                        id: `${user.id}-day-${schedule.dayOfWeek}`,
                         doctorId: user.id,
-                        startTime: morning,
-                        endTime: morningEnd,
-                        status: day > 3 ? 'AVAILABLE' : 'BOOKED',
+                        dayOfWeek: schedule.dayOfWeek,
+                        startTime: schedule.startTime,
+                        endTime: schedule.endTime,
+                        isActive: schedule.isActive,
                     },
                 });
 
-                // Afternoon slot
-                const afternoon = new Date(date);
-                afternoon.setHours(14, 0, 0, 0);
-                const afternoonEnd = new Date(afternoon);
-                afternoonEnd.setHours(15, 0, 0, 0);
-
-                await prisma.availability.upsert({
-                    where: {
-                        id: `${user.id}-afternoon-${day}`,
-                    },
-                    update: {},
-                    create: {
-                        id: `${user.id}-afternoon-${day}`,
-                        doctorId: user.id,
-                        startTime: afternoon,
-                        endTime: afternoonEnd,
-                        status: day > 3 ? 'AVAILABLE' : 'BOOKED',
-                    },
-                });
-
-                counts.availabilities += 2;
+                counts.availabilities += 1;
             }
         }
 
@@ -268,7 +285,7 @@ const alt = async () => {
     console.log(`├─ ${counts.appointments} Scheduled Appointments`);
     console.log(`├─ ${counts.pendingClaims + counts.approvedClaims + counts.rejectedClaims} Claims (${counts.pendingClaims} Pending, ${counts.approvedClaims} Approved, ${counts.rejectedClaims} Rejected)`);
     console.log(`├─ ${counts.payouts} Pending Payouts`);
-    console.log(`├─ ${counts.availabilities} Doctor Availability Slots per verified doctor`);
+    console.log(`├─ ${counts.availabilities} Weekly Availability Schedules`);
     console.log(`└─ ${counts.creditTransactions} Credit Transactions`);
 
 }

@@ -6,7 +6,12 @@ import { PendingDoctors } from './components/pending-doctors';
 import { PendingPayouts } from './components/pending-payouts';
 import { TabsContent } from '@/components/ui/tabs';
 import { VerifiedDoctors } from './components/verified-doctors';
+import dynamic from 'next/dynamic';
 import { getDashboardStats } from '@/actions/members';
+
+const PlansManagement = dynamic(() => import('./components/plans-management'), {
+  ssr: false,
+});
 
 export default async function AdminPage() {
   const [dashboardStats] = await Promise.all([getDashboardStats()]);
@@ -39,6 +44,10 @@ export default async function AdminPage() {
 
       <TabsContent value="reports" className="border-none p-0">
         <DashboardStats stats={dashboardStats} />
+      </TabsContent>
+
+      <TabsContent value="plans" className="border-none p-0">
+        <PlansManagement />
       </TabsContent>
     </>
   );

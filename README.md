@@ -18,7 +18,7 @@ A comprehensive healthcare platform connecting patients with providers through a
 - ✅ Credit-based subscription system
 - ✅ Digital membership IDs with QR codes
 - ✅ Email/SMS/WhatsApp notifications
-- ✅ Stripe payment integration
+- ✅ Paystack payment integration
 - ✅ Claims processing system
 - ✅ Multi-role dashboard system
 
@@ -61,9 +61,9 @@ NEXT_PUBLIC_VONAGE_APPLICATION_ID=
 VONAGE_API_KEY=
 VONAGE_API_SECRET=
 
-# Stripe Payments
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+# Paystack Payments
+PAYSTACK_SECRET_KEY=
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=
 
 # Email Notifications
 EMAIL_USER=
