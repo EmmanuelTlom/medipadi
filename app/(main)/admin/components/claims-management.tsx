@@ -38,12 +38,17 @@ import { toast } from 'sonner';
 import useFetch from '@/hooks/use-fetch';
 import { usePagination } from 'alova/client';
 import { useState } from 'react';
+import { Money } from '@/lib/money';
 
 export function ClaimsManagement() {
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [meta, setMeta] = useState({ pending: 0, processed: 0 });
+  const [meta, setMeta] = useState({
+    pending: 0,
+    processed: 0,
+    pendingAmount: 0,
+  });
 
   const {
     loading,
@@ -60,6 +65,7 @@ export function ClaimsManagement() {
       data: [],
       pending: 0,
       processed: 0,
+      pendingAmount: 0,
       meta: { totalCount: 0 },
     },
     total: (e) => e.meta.totalCount,
@@ -67,6 +73,7 @@ export function ClaimsManagement() {
     setMeta({
       pending: data.pending,
       processed: data.processed,
+      pendingAmount: data.pendingAmount,
     });
   });
 
@@ -177,7 +184,7 @@ export function ClaimsManagement() {
                   Total Pending Amount
                 </p>
                 <p className="text-2xl font-bold text-emerald-400">
-                  ${meta.pending}
+                  {Money.format(meta.pendingAmount)}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-emerald-400" />
@@ -282,7 +289,7 @@ export function ClaimsManagement() {
                           <div>
                             <p className="text-muted-foreground">Amount</p>
                             <p className="font-semibold text-emerald-400">
-                              ${claim.amount.toFixed(2)}
+                              {Money.format(claim.amount)}
                             </p>
                           </div>
                           <div>
@@ -346,7 +353,7 @@ export function ClaimsManagement() {
                                       Amount:
                                     </p>
                                     <p className="font-semibold text-emerald-400">
-                                      ${claim.amount.toFixed(2)}
+                                      {Money.format(claim.amount)}
                                     </p>
                                   </div>
                                   <div>
@@ -531,8 +538,8 @@ export function ClaimsManagement() {
                           {getStatusBadge(claim.status)}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {claim.member?.firstName} {claim.member?.lastName} • $
-                          {claim.amount.toFixed(2)} •
+                          {claim.member?.firstName} {claim.member?.lastName} •
+                          {Money.format(claim.amount)} •
                           {formatDate(claim.updatedAt)}
                         </p>
                       </div>

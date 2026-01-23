@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getProviderClaims } from '@/lib/requests/claims';
 import { usePagination } from 'alova/client';
 import { useState } from 'react';
+import { Money } from '@/lib/money';
 
 export function ClaimHistory({ user }: { user: User }) {
   const [meta, setMeta] = useState({
@@ -126,7 +127,7 @@ export function ClaimHistory({ user }: { user: User }) {
               <div>
                 <p className="text-sm text-muted-foreground">Approved Amount</p>
                 <p className="text-2xl font-bold text-green-400">
-                  ${meta.approvedAmount.toFixed(2)}
+                  {Money.format(meta.approvedAmount)}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-green-400" />
@@ -202,7 +203,7 @@ export function ClaimHistory({ user }: { user: User }) {
                           <div>
                             <p className="text-muted-foreground">Amount</p>
                             <p className="font-semibold text-emerald-400">
-                              ${claim.amount.toFixed(2)}
+                              {Money.format(claim.amount)}
                             </p>
                           </div>
                           <div>

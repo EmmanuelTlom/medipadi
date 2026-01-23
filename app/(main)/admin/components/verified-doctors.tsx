@@ -7,7 +7,7 @@ import {
   ChevronRight,
   Loader2,
   Search,
-  User,
+  User as UserIcon,
 } from 'lucide-react';
 import {
   Card,
@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import useFetch from '@/hooks/use-fetch';
 import { usePagination } from 'alova/client';
 import { useState } from 'react';
+import { User } from '@prisma/client';
 
 export function VerifiedDoctors() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,7 +51,7 @@ export function VerifiedDoctors() {
     },
   );
 
-  const handleStatusChange = async (doctor, suspend) => {
+  const handleStatusChange = async (doctor: User, suspend: boolean) => {
     const confirmed = window.confirm(
       `Are you sure you want to ${suspend ? 'suspend' : 'reinstate'} ${
         doctor.firstName + ' ' + doctor.lastName
@@ -143,7 +144,7 @@ export function VerifiedDoctors() {
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <div className="bg-muted/20 rounded-full p-2">
-                            <User className="h-5 w-5 text-emerald-400" />
+                            <UserIcon className="h-5 w-5 text-emerald-400" />
                           </div>
                           <div>
                             <h3 className="font-medium text-white">

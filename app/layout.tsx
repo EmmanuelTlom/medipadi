@@ -1,15 +1,18 @@
-import "./globals.css";
+import './globals.css';
 
-import { Facebook, Instagram, Linkedin, X } from "lucide-react";
+import { Facebook, Instagram, Linkedin, X } from 'lucide-react';
 
-import { ClerkProvider } from "@clerk/nextjs";
-import Header from "@/components/header";
-import { Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "sonner";
-import { dark } from "@clerk/themes";
+import { ClerkProvider } from '@clerk/nextjs';
+import Header from '@/components/header';
+import { Inter } from 'next/font/google';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from 'sonner';
+import { dark } from '@clerk/themes';
+import ClientBase from './ClientBase';
+import { Money } from '@/lib/money';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
+Money.setDefaultCurrency('NGN');
 
 // export const metadata = {
 //   title: "Doctors Appointment App",
@@ -17,39 +20,40 @@ const inter = Inter({ subsets: ["latin"] });
 // };
 
 export const metadata = {
-  metadataBase: new URL("https://medipadi.vercel.app/"),
-  title: "MediPadi – Connecting you to quality healthcare, Anytime",
+  metadataBase: new URL('https://medipadi.vercel.app/'),
+  title: 'MediPadi – Connecting you to quality healthcare, Anytime',
   description:
-    "Connect with trusted healthcare facilities instantly. Book appointments, video consultations, and get quality healthcare anytime.",
+    'Connect with trusted healthcare facilities instantly. Book appointments, video consultations, and get quality healthcare anytime.',
   openGraph: {
-    title: "MediPadi – Connecting you to quality healthcare, Anytime",
+    title: 'MediPadi – Connecting you to quality healthcare, Anytime',
     description:
-      "Connect with trusted healthcare facilities instantly. Book appointments, video consultations, and get quality healthcare anytime.",
+      'Connect with trusted healthcare facilities instantly. Book appointments, video consultations, and get quality healthcare anytime.',
     images: [
       {
-        url: "/banner3.jpg", // path to your meta image
+        url: '/banner3.jpg', // path to your meta image
         width: 1200,
         height: 630,
-        alt: "Healthcare MediPadi app",
+        alt: 'Healthcare MediPadi app',
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "MediPadi – Book Doctors Online, Anytime",
+    card: 'summary_large_image',
+    title: 'MediPadi – Book Doctors Online, Anytime',
     description:
-      "Book appointments and talk to trusted doctors online — anywhere, anytime.",
-    images: ["/banner3.jpg"],
+      'Book appointments and talk to trusted doctors online — anywhere, anytime.',
+    images: ['/banner3.jpg'],
   },
 };
 
-export default function RootLayout ({ children }) {
+export default function RootLayout({ children }) {
   return (
     <ClerkProvider
       appearance={{
         baseTheme: dark,
       }}
     >
+      <ClientBase />
       <html lang="en" suppressHydrationWarning>
         <head>
           <link rel="icon" href="/logo.png" sizes="any" />
@@ -67,7 +71,7 @@ export default function RootLayout ({ children }) {
 
             <footer className="bg-muted/50 py-12">
               <div className="container mx-auto px-4 text-center text-gray-200">
-                {" "}
+                {' '}
                 <p className="text-white text-2xl font-semibold mb-4">
                   Contact Us
                 </p>

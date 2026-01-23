@@ -29,6 +29,7 @@ import { ValidationException } from '@/lib/Exceptions/ValidationException';
 import { alova } from '@/lib/alova';
 import { getUser } from '@/lib/requests/users';
 import { toast } from 'sonner';
+import { Money } from '@/lib/money';
 
 interface SubscriptionPlan {
   id: string;
@@ -59,7 +60,7 @@ export function MemberRegistration({
     fetch('/api/subscription-plans')
       .then((res) => res.json())
       .then((data) => {
-        setSubscriptionPlans(data.plans || []);
+        setSubscriptionPlans(data.data || []);
         setLoadingPlans(false);
       })
       .catch((err) => {
@@ -155,7 +156,7 @@ export function MemberRegistration({
 
     if (walletBalance < subscriptionCost) {
       toast.error(
-        `Insufficient wallet balance. Required: ₦${subscriptionCost}, Available: ₦${walletBalance.toFixed(2)}`,
+        `Insufficient wallet balance. Required: ${Money.format(subscriptionCost)}, Available: ${Money.format(walletBalance)}`,
       );
       return;
     }
@@ -270,7 +271,7 @@ export function MemberRegistration({
               <Label htmlFor="planType">Subscription Plan</Label>
               <Select
                 value={formData.planType}
-                onValueChange={(value) =>
+                onValueChange={(value: string) =>
                   setFormData({ ...formData, planType: value })
                 }
                 disabled={loading || loadingPlans}
@@ -288,8 +289,9 @@ export function MemberRegistration({
                       <div className="flex items-center justify-between w-full">
                         <span>{plan.name}</span>
                         <span className="ml-4 text-emerald-400">
-                          ₦{plan.price}/{plan.duration === 1 ? 'month' : 'year'}
-                          {plan.duration > 1 && ` (${plan.credits} credits)`}
+                          {Money.format(plan.price)}/
+                          {plan.duration === 1 ? 'month' : 'year'}
+                          {` (${plan.credits} credits)`}
                         </span>
                       </div>
                     </SelectItem>
@@ -305,14 +307,16 @@ export function MemberRegistration({
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Subscription Cost:</span>
-                    <span className="font-semibold">₦{selectedPlanCost}</span>
+                    <span className="font-semibold">
+                      {Money.format(selectedPlanCost)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Your Wallet Balance:</span>
                     <span
                       className={`font-semibold ${hasSufficientFunds ? 'text-emerald-400' : 'text-red-400'}`}
                     >
-                      ₦{walletBalance.toFixed(2)}
+                      {Money.format(walletBalance)}
                     </span>
                   </div>
                   {selectedPlan && (
@@ -333,7 +337,7 @@ export function MemberRegistration({
                             : 'text-red-400'
                         }
                       >
-                        ₦{(walletBalance - selectedPlanCost).toFixed(2)}
+                        {Money.format(walletBalance - selectedPlanCost)}
                       </span>
                     </div>
                   </div>
@@ -359,7 +363,7 @@ export function MemberRegistration({
               <UserPlus className="h-4 w-4 mr-2" />
               {loading
                 ? 'Registering...'
-                : `Register Member ($${selectedPlanCost})`}
+                : `Register Member (${Money.format(selectedPlanCost)})`}
             </Button>
           </form>
         </CardContent>

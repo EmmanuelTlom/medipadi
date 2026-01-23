@@ -38,6 +38,7 @@ import { toast } from 'sonner';
 import useFetch from '@/hooks/use-fetch';
 import { usePagination } from 'alova/client';
 import { useState } from 'react';
+import { Money } from '@/lib/money';
 
 export function PendingPayouts() {
   const [selectedPayout, setSelectedPayout] = useState(null);
@@ -150,8 +151,8 @@ export function PendingPayouts() {
                             <div className="flex items-center">
                               <DollarSign className="h-4 w-4 mr-1 text-emerald-400" />
                               <span>
-                                {payout.credits} credits • $
-                                {payout.netAmount.toFixed(2)}
+                                {payout.credits} credits •
+                                {Money.format(payout.netAmount)}
                               </span>
                             </div>
                             <div className="flex items-center">
@@ -309,7 +310,7 @@ export function PendingPayouts() {
                       Gross amount (10 USD/credit):
                     </span>
                     <span className="text-white">
-                      ${selectedPayout.amount.toFixed(2)}
+                      {Money.format(selectedPayout.amount)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -317,13 +318,13 @@ export function PendingPayouts() {
                       Platform fee (2 USD/credit):
                     </span>
                     <span className="text-white">
-                      -${selectedPayout.platformFee.toFixed(2)}
+                      -{Money.format(selectedPayout.platformFee)}
                     </span>
                   </div>
                   <div className="border-t border-emerald-900/20 pt-3 flex justify-between font-medium">
                     <span className="text-white">Net payout:</span>
                     <span className="text-emerald-400">
-                      ${selectedPayout.netAmount.toFixed(2)}
+                      {Money.format(selectedPayout.netAmount)}
                     </span>
                   </div>
                   <div className="border-t border-emerald-900/20 pt-3">
@@ -416,7 +417,7 @@ export function PendingPayouts() {
                 <div className="flex justify-between mb-2">
                   <span className="text-muted-foreground">Amount to pay:</span>
                   <span className="text-emerald-400 font-medium">
-                    ${selectedPayout.netAmount.toFixed(2)}
+                    {Money.format(selectedPayout.netAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between">

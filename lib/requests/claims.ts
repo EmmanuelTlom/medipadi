@@ -11,6 +11,7 @@ export const getPendingClaims = (params: Record<string, any> = {}) => (
         meta: PageNumberPaginationMeta<true>
         pending: number;
         processed: number;
+        pendingAmount: number;
     }>('/api/admin/claims', {
         hitSource: ['submit-claim'],
         params: { page, limit, status: 'PENDING', ...params }
@@ -26,6 +27,7 @@ export const getProcessedClaims = (params: Record<string, any> = {}) => (
         meta: PageNumberPaginationMeta<true>
         pending: number;
         processed: number;
+        pendingAmount: number;
     }>('/api/admin/claims', {
         hitSource: ['submit-claim'],
         params: {

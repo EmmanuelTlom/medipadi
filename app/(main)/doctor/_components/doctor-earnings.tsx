@@ -29,6 +29,7 @@ import { format } from 'date-fns';
 import { requestPayout } from '@/actions/payout';
 import { toast } from 'sonner';
 import useFetch from '@/hooks/use-fetch';
+import { Money } from '@/lib/money';
 
 export function DoctorEarnings({ earnings, payouts = [] }) {
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);
@@ -89,7 +90,7 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
                   {availableCredits}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  ${availablePayout.toFixed(2)} available for payout
+                  {Money.format(availablePayout)} available for payout
                 </p>
               </div>
               <div className="bg-emerald-900/20 p-3 rounded-full">
@@ -105,7 +106,7 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
               <div>
                 <p className="text-sm text-muted-foreground">This Month</p>
                 <p className="text-3xl font-bold text-white">
-                  ${thisMonthEarnings.toFixed(2)}
+                  {Money.format(thisMonthEarnings)}
                 </p>
               </div>
               <div className="bg-emerald-900/20 p-3 rounded-full">
@@ -140,7 +141,7 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
               <div>
                 <p className="text-sm text-muted-foreground">Avg/Month</p>
                 <p className="text-3xl font-bold text-white">
-                  ${averageEarningsPerMonth.toFixed(2)}
+                  {Money.format(averageEarningsPerMonth)}
                 </p>
               </div>
               <div className="bg-emerald-900/20 p-3 rounded-full">
@@ -195,7 +196,7 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
                   <div>
                     <p className="text-muted-foreground">Pending Amount</p>
                     <p className="text-white font-medium">
-                      ${pendingPayout.netAmount.toFixed(2)}
+                      {Money.format(pendingPayout.netAmount)}
                     </p>
                   </div>
                   <div>
@@ -223,13 +224,13 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
                 <div>
                   <p className="text-muted-foreground">Payout Amount</p>
                   <p className="text-white font-medium">
-                    ${availablePayout.toFixed(2)}
+                    {Money.format(availablePayout)}
                   </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Platform Fee</p>
                   <p className="text-white font-medium">
-                    ${platformFee.toFixed(2)}
+                    {Money.format(platformFee)}
                   </p>
                 </div>
               </div>
@@ -258,9 +259,9 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="text-sm">
-              <strong>Payout Structure:</strong> You earn $8 per credit.
-              Platform fee is $2 per credit. Payouts include all your available
-              credits and are processed via PayPal.
+              <strong>Payout Structure:</strong> You earn {Money.whole(8)} per
+              credit. Platform fee is {Money.whole(2)} per credit. Payouts
+              include all your available credits and are processed via PayPal.
             </AlertDescription>
           </Alert>
 
@@ -279,8 +280,8 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
                         {format(new Date(payout.createdAt), 'MMM d, yyyy')}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {payout.credits} credits • $
-                        {payout.netAmount.toFixed(2)}
+                        {payout.credits} credits •{' '}
+                        {Money.format(payout.netAmount)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {payout.paypalEmail}
@@ -327,19 +328,19 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Gross amount:</span>
                 <span className="text-white">
-                  ${(availableCredits * 10).toFixed(2)}
+                  {Money.format(availableCredits * 10)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
                   Platform fee (20%):
                 </span>
-                <span className="text-white">-${platformFee.toFixed(2)}</span>
+                <span className="text-white">-{Money.format(platformFee)}</span>
               </div>
               <div className="border-t border-emerald-900/20 pt-2 flex justify-between font-medium">
                 <span className="text-white">Net payout:</span>
                 <span className="text-emerald-400">
-                  ${availablePayout.toFixed(2)}
+                  {Money.format(availablePayout)}
                 </span>
               </div>
             </div>
@@ -364,7 +365,7 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-sm">
                 Once processed by admin, {availableCredits} credits will be
-                deducted from your account and ${availablePayout.toFixed(2)}{' '}
+                deducted from your account and {Money.format(availablePayout)}{' '}
                 will be sent to your PayPal.
               </AlertDescription>
             </Alert>

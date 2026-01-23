@@ -65,11 +65,18 @@ export async function GET (request: NextRequest) {
             where: { status: 'PENDING' }
         })
 
+        const pendingAmount = (await db.claim.aggregate({
+            _sum: {
+                amount: true,
+            },
+            where: { status: 'PENDING' }
+        }))._sum.amount || 0;
+
         const processed = await db.claim.count({
             where: { status: { not: 'PENDING' } }
         })
 
-        return NextResponse.json({ data, meta, pending, processed });
+        return NextResponse.json({ data, meta, pending, processed, pendingAmount });
     } catch (error) {
         console.error("Error fetching all claims:", error);
         return NextResponse.json(

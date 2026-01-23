@@ -12,6 +12,7 @@ import { useForm, useRequest } from 'alova/client';
 import { Spinner } from './ui/spinner';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { initializePayment, verifyPayment } from '@/lib/requests/payments';
 
 const Pricing = ({ user = {} as User }: { user: User }) => {
   const params = useSearchParams();
@@ -30,13 +31,11 @@ const Pricing = ({ user = {} as User }: { user: User }) => {
   );
 
   const { loading: verifying } = useRequest(
-    () =>
-      alova.Get<{ message: string }>('/api/subscription/subscribe', {
-        params: {
-          plan: params.get('plan'),
-          reference: params.get('reference'),
-        },
-      }),
+    verifyPayment({
+      type: 'subscription',
+      plan: params.get('plan'),
+      reference: params.get('reference'),
+    }),
     {
       immediate:
         params.get('subscription') === 'success' &&
@@ -55,20 +54,14 @@ const Pricing = ({ user = {} as User }: { user: User }) => {
     updateForm,
     onSuccess,
     onError,
-  } = useForm(
-    (fm) =>
-      alova.Post('/api/subscription/subscribe', fm, {
-        transform: (data: { data: { authorization_url: string } }) => data.data,
-      }),
-    {
-      initialForm: {
-        amount: 0,
-        email: '',
-        metadata: {} as Record<string, any>,
-        callback_url: '',
-      },
+  } = useForm(initializePayment(), {
+    initialForm: {
+      amount: 0,
+      email: '',
+      metadata: {} as Record<string, any>,
+      callback_url: '',
     },
-  );
+  });
 
   onError(({ error }) => {
     console.error('Payment initialization error:', error);

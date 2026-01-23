@@ -23,17 +23,17 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { User } from '@prisma/client';
 import { format } from 'date-fns';
-import { fundWallet } from '@/actions/payout';
-import { getUser } from '@/lib/requests/users';
 import { getWalletTransactions } from '@/lib/requests/wallet-transactions';
-import { invalidateCache } from 'alova';
 import { toast } from 'sonner';
-import useFetch from '@/hooks/use-fetch';
-import { usePagination } from 'alova/client';
+import { useForm, usePagination, useRequest } from 'alova/client';
 import { useState } from 'react';
+import { initializePayment, verifyPayment } from '@/lib/requests/payments';
+import { useSearchParams } from 'next/navigation';
+import { Money } from '@/lib/money';
 
 export function AgentWalletFunding({ user }: { user: User }) {
-  const [amount, setAmount] = useState('');
+  const params = useSearchParams();
+
   const [walletBalance, setWalletBalance] = useState(user.walletBalance || 0);
 
   const {
@@ -49,25 +49,63 @@ export function AgentWalletFunding({ user }: { user: User }) {
     setWalletBalance(data.balance || 0);
   });
 
-  const { loading, fn: submitFunding } = useFetch(fundWallet);
+  const { loading: verifying } = useRequest(
+    verifyPayment<{ agent: User }>({
+      type: 'wallet',
+      reference: params.get('reference'),
+    }),
+    {
+      immediate:
+        params.get('funding') === 'success' && !!params.get('reference'),
+      initialData: {},
+    },
+  ).onSuccess(({ data }) => {
+    toast.success(data.message || 'Wallet funded successfully!');
+    refreshTransactions();
+  });
+
+  const { send, form, loading, updateForm, onSuccess, onError } = useForm(
+    initializePayment(),
+    {
+      initialForm: {
+        amount: 0,
+        email: '',
+        metadata: {} as Record<string, any>,
+        callback_url: '',
+      },
+    },
+  );
+
+  onError(({ error }) => {
+    console.error('Payment initialization error:', error);
+    toast.error('Failed to initialize payment. Please try again.');
+  });
+
+  onSuccess(({ data }) => {
+    window.location.href = data.authorization_url;
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!amount || parseFloat(amount) <= 0) {
+    if (!form.amount || form.amount <= 0) {
       toast.error('Please enter a valid amount');
       return;
     }
 
-    try {
-      await submitFunding(user.id, parseFloat(amount));
-      toast.success(`Successfully funded wallet with $${amount}`);
-      setAmount('');
-      invalidateCache(getUser()());
-      refreshTransactions();
-    } catch (error) {
-      toast.error('Failed to fund wallet: ' + error.message);
-    }
+    const baseUrl = `${window.location.origin}/${window.location.pathname}`;
+
+    updateForm({
+      email: user.email,
+      amount: form.amount,
+      metadata: {
+        type: 'wallet',
+        agentId: user.id,
+      },
+      callback_url: `${baseUrl}?funding=success&type=wallet`,
+    });
+
+    send();
   };
 
   return (
@@ -83,7 +121,7 @@ export function AgentWalletFunding({ user }: { user: User }) {
         </CardHeader>
         <CardContent>
           <div className="text-4xl font-bold text-emerald-400 flex items-center gap-2">
-            ${walletBalance.toFixed(2)}{' '}
+            {Money.format(walletBalance)}{' '}
             {loadingTransactions && <Spinner className="size-8" />}
           </div>
           <p className="text-sm text-muted-foreground mt-2">
@@ -96,7 +134,9 @@ export function AgentWalletFunding({ user }: { user: User }) {
       <Card className="border-emerald-900/20">
         <CardHeader>
           <CardTitle className="text-xl font-bold text-white flex items-center">
-            <DollarSign className="h-5 w-5 mr-2 text-emerald-400" />
+            <div className="h-full flex items-center w-5 mr-2 text-emerald-400">
+              {Money.currencySymbol()}
+            </div>
             Fund Your Wallet
           </CardTitle>
           <CardDescription>
@@ -106,23 +146,27 @@ export function AgentWalletFunding({ user }: { user: User }) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (USD)</Label>
+              <Label htmlFor="amount">Amount ({Money.currencyCode()})</Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="absolute left-3 flex items-center h-full w-4 text-muted-foreground">
+                  {Money.currencySymbol()}
+                </div>
                 <Input
                   id="amount"
                   type="number"
                   placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  value={form.amount}
+                  onChange={(e: any) =>
+                    updateForm({ amount: parseFloat(e.target.value) })
+                  }
                   className="pl-10"
                   step="0.01"
                   min="1"
-                  disabled={loading}
+                  disabled={loading || verifying}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Minimum deposit: $1.00
+                Minimum deposit: {Money.format(1)}
               </p>
             </div>
 
@@ -130,30 +174,32 @@ export function AgentWalletFunding({ user }: { user: User }) {
             <div className="space-y-2">
               <Label>Quick Amounts</Label>
               <div className="grid grid-cols-4 gap-2">
-                {[50, 100, 250, 500].map((value) => (
+                {[1000, 2500, 5000, 10000].map((value) => (
                   <Button
                     key={value}
                     type="button"
                     variant="outline"
-                    onClick={() => setAmount(value.toString())}
-                    disabled={loading}
+                    onClick={() => updateForm({ amount: value })}
+                    disabled={loading || verifying}
                     className="border-emerald-900/30"
                   >
-                    ${value}
+                    {Money.whole(value)}
                   </Button>
                 ))}
               </div>
             </div>
 
-            {loading && <BarLoader width="100%" color="#10b981" />}
+            {(loading || verifying) && (
+              <BarLoader width="100%" color="#10b981" />
+            )}
 
             <Button
               type="submit"
               className="w-full bg-emerald-600 hover:bg-emerald-700"
-              disabled={loading || !amount}
+              disabled={loading || verifying || !form.amount}
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              {loading ? 'Processing...' : 'Fund Wallet'}
+              {loading || verifying ? <Spinner /> : 'Fund Wallet'}
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
@@ -225,11 +271,11 @@ export function AgentWalletFunding({ user }: { user: User }) {
                           isPositive ? 'text-emerald-400' : 'text-red-400'
                         }`}
                       >
-                        {isPositive ? '+' : ''}$
-                        {Math.abs(transaction.amount).toFixed(2)}
+                        {isPositive ? '+' : ''}
+                        {Money.format(transaction.amount)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Balance: ${transaction.balanceAfter.toFixed(2)}
+                        Balance: {Money.format(transaction.balanceAfter)}
                       </p>
                     </div>
                   </div>
