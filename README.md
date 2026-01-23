@@ -2,7 +2,7 @@
 
 A comprehensive healthcare platform connecting patients with providers through a prepaid health micro-cover system.
 
-## 📋 Features
+## Features
 
 ### Core Modules
 
@@ -14,13 +14,13 @@ A comprehensive healthcare platform connecting patients with providers through a
 
 ### Key Features
 
-- ✅ Video consultations (Vonage)
-- ✅ Credit-based subscription system
-- ✅ Digital membership IDs with QR codes
-- ✅ Email/SMS/WhatsApp notifications
-- ✅ Paystack payment integration
-- ✅ Claims processing system
-- ✅ Multi-role dashboard system
+- [x] Video consultations (Vonage)
+- [x] Credit-based subscription system
+- [x] Digital membership IDs with QR codes
+- [x] Email/SMS/WhatsApp notifications
+- [x] Paystack payment integration
+- [x] Claims processing system
+- [x] Multi-role dashboard system
 
 ## 🚀 Getting Started
 
