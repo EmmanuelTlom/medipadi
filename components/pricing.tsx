@@ -1,18 +1,18 @@
 'use client';
 
 import { Card, CardContent } from './ui/card';
+import { SubscriptionPlan, User } from '@prisma/client';
+import { initializePayment, verifyPayment } from '@/lib/requests/payments';
+import { useForm, useRequest } from 'alova/client';
 
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Check } from 'lucide-react';
-import { SubscriptionPlan, User } from '@prisma/client';
+import { Spinner } from './ui/spinner';
 import { alova } from '@/lib/alova';
 import { toast } from 'sonner';
-import { useForm, useRequest } from 'alova/client';
-import { Spinner } from './ui/spinner';
-import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { initializePayment, verifyPayment } from '@/lib/requests/payments';
+import { useSearchParams } from 'next/navigation';
 
 const Pricing = ({ user = {} as User }: { user: User }) => {
   const params = useSearchParams();
@@ -43,9 +43,15 @@ const Pricing = ({ user = {} as User }: { user: User }) => {
         !!params.get('reference'),
       initialData: {},
     },
-  ).onSuccess(() => {
-    router.replace(`member?new-plan=${params.get('plan')}`, { scroll: true });
-  });
+  )
+    .onSuccess(() => {
+      router.replace(`member?new-plan=${params.get('plan')}`, { scroll: true });
+    })
+    .onError(({ error }) => {
+      toast.error(
+        error.message || 'Failed to verify payment. Please contact support.',
+      );
+    });
 
   const {
     form,
@@ -84,9 +90,10 @@ const Pricing = ({ user = {} as User }: { user: User }) => {
       email: user.email,
       amount: plan.price, // Convert to kobo
       metadata: {
+        type: 'SUBSCRIPTION',
         planId: plan.id,
-        planSlug: plan.slug,
         userId: user.id,
+        planSlug: plan.slug,
       },
       callback_url: `${baseUrl}?subscription=success&plan=${plan.slug}`,
     });

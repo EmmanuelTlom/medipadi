@@ -15,24 +15,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { initializePayment, verifyPayment } from '@/lib/requests/payments';
+import { useForm, usePagination, useRequest } from 'alova/client';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Money } from '@/lib/money';
 import { Spinner } from '@/components/ui/spinner';
 import { User } from '@prisma/client';
 import { format } from 'date-fns';
 import { getWalletTransactions } from '@/lib/requests/wallet-transactions';
 import { toast } from 'sonner';
-import { useForm, usePagination, useRequest } from 'alova/client';
 import { useState } from 'react';
-import { initializePayment, verifyPayment } from '@/lib/requests/payments';
-import { useSearchParams } from 'next/navigation';
-import { Money } from '@/lib/money';
 
 export function AgentWalletFunding({ user }: { user: User }) {
   const params = useSearchParams();
+  const router = useRouter();
 
   const [walletBalance, setWalletBalance] = useState(user.walletBalance || 0);
 
@@ -59,10 +60,23 @@ export function AgentWalletFunding({ user }: { user: User }) {
         params.get('funding') === 'success' && !!params.get('reference'),
       initialData: {},
     },
-  ).onSuccess(({ data }) => {
-    toast.success(data.message || 'Wallet funded successfully!');
-    refreshTransactions();
-  });
+  )
+    .onSuccess(({ data }) => {
+      toast.success(data.message || 'Wallet funded successfully!');
+      refreshTransactions();
+    })
+    .onError(({ error }) => {
+      toast.error(
+        error.message || 'Failed to verify payment. Please contact support.',
+      );
+    })
+    .onComplete(() => {
+      const url = new URL(window.location.href);
+      ['type', 'funding', 'reference', 'trx'].forEach((param) =>
+        url.searchParams.delete(param),
+      );
+      router.replace(url.pathname);
+    });
 
   const { send, form, loading, updateForm, onSuccess, onError } = useForm(
     initializePayment(),

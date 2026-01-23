@@ -23,10 +23,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import PageHeader from '@/components/page-header';
 import { Textarea } from '@/components/ui/textarea';
 
-export default function AdminPlansPage() {
+export function AdminPlansPage() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);

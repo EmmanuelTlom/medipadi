@@ -37,6 +37,7 @@ model User {
   payouts              Payout[]
   memberClaims         Claim[]              @relation("MemberClaims")
   providerClaims       Claim[]              @relation("ProviderClaims")
+  paymentTransactions  Transaction[]
   agent                User?                @relation("AgentMembers", fields: [agentId], references: [id], onDelete: SetNull)
   registeredMembers    User[]               @relation("AgentMembers")
   plan                 SubscriptionPlan?    @relation(fields: [planId], references: [id], onDelete: SetNull)
@@ -116,6 +117,35 @@ model WalletTransaction {
   user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+model Transaction {
+  id                String        @id @default(uuid())
+  reference         String        @unique // Paystack reference
+  userId            String
+  amount            Float // Amount in Naira
+  currency          String        @default("NGN")
+  status            PaymentStatus @default(PENDING)
+  type              PaymentType
+  provider          String        @default("paystack")
+  metadata          Json? // Store additional data like planId, planSlug, etc.
+  webhookAttempts   Int           @default(0)
+  lastWebhookAt     DateTime?
+  webhookError      String?
+  verifiedAt        DateTime?
+  completedAt       DateTime?
+  failedAt          DateTime?
+  serviceProvided   Boolean       @default(false) // Track if service was already provided
+  serviceProvidedAt DateTime?
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reference])
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@index([serviceProvided, status])
 }
 
 model Payout {
@@ -199,4 +229,20 @@ enum WalletTransactionType {
   WITHDRAWAL
   MEMBER_REGISTRATION
   REFUND
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  REFUNDED
+  DISPUTED
+}
+
+enum PaymentType {
+  SUBSCRIPTION
+  WALLET_FUNDING
+  CREDIT_PURCHASE
+  OTHER
 }

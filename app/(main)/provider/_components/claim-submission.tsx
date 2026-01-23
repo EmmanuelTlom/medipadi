@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Member } from '@/interfaces/users';
+import { Money } from '@/lib/money';
 import { Textarea } from '@/components/ui/textarea';
 import { alova } from '@/lib/alova';
 import { toast } from 'sonner';
@@ -219,9 +220,13 @@ export function ClaimSubmission({ user }) {
 
             {/* Claim Amount */}
             <div className="space-y-2">
-              <Label htmlFor="amount">Claim Amount (USD)</Label>
+              <Label htmlFor="amount">
+                Claim Amount ({Money.currencyCode()})
+              </Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="absolute left-3 flex items-center h-full w-4 text-muted-foreground">
+                  {Money.currencySymbol()}
+                </div>
                 <Input
                   id="amount"
                   name="amount"

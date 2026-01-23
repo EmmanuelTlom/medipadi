@@ -32,13 +32,13 @@ import { approvePayout, getPendingPayouts } from '@/lib/requests/payouts';
 import { Badge } from '@/components/ui/badge';
 import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
+import { Money } from '@/lib/money';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import useFetch from '@/hooks/use-fetch';
 import { usePagination } from 'alova/client';
 import { useState } from 'react';
-import { Money } from '@/lib/money';
 
 export function PendingPayouts() {
   const [selectedPayout, setSelectedPayout] = useState(null);
@@ -149,9 +149,11 @@ export function PendingPayouts() {
                           </p>
                           <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
                             <div className="flex items-center">
-                              <DollarSign className="h-4 w-4 mr-1 text-emerald-400" />
+                              <div className="mr-1 text-emerald-400">
+                                {Money.currencySymbol()}
+                              </div>
                               <span>
-                                {payout.credits} credits •
+                                {payout.credits} credits •{' '}
                                 {Money.format(payout.netAmount)}
                               </span>
                             </div>
@@ -266,10 +268,12 @@ export function PendingPayouts() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm font-medium text-muted-foreground break-words">
                       Email
                     </p>
-                    <p className="text-white">{selectedPayout.doctor.email}</p>
+                    <p className="text-white break-words">
+                      {selectedPayout.doctor.email}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
@@ -328,7 +332,7 @@ export function PendingPayouts() {
                     </span>
                   </div>
                   <div className="border-t border-emerald-900/20 pt-3">
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm font-medium text-muted-foreground break-words">
                       PayPal Email
                     </p>
                     <p className="text-white">{selectedPayout.paypalEmail}</p>

@@ -5,7 +5,7 @@ import { db } from '@/lib/prisma';
 // UPDATE subscription plan
 export async function PUT (
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> },
 ) {
     try {
         const { userId } = await auth();
@@ -29,7 +29,7 @@ export async function PUT (
 
         // Check if plan exists
         const existingPlan = await db.subscriptionPlan.findUnique({
-            where: { id: params.id },
+            where: { id: (await params).id },
         });
 
         if (!existingPlan) {
@@ -51,7 +51,7 @@ export async function PUT (
         }
 
         const updatedPlan = await db.subscriptionPlan.update({
-            where: { id: params.id },
+            where: { id: (await params).id },
             data: {
                 name,
                 slug,
@@ -76,7 +76,7 @@ export async function PUT (
 // DELETE subscription plan
 export async function DELETE (
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> },
 ) {
     try {
         const { userId } = await auth();
@@ -97,7 +97,7 @@ export async function DELETE (
 
         // Check if plan exists
         const plan = await db.subscriptionPlan.findUnique({
-            where: { id: params.id },
+            where: { id: (await params).id },
         });
 
         if (!plan) {
@@ -106,7 +106,7 @@ export async function DELETE (
 
         // Check if any users are using this plan
         const usersWithPlan = await db.user.count({
-            where: { planId: params.id },
+            where: { planId: (await params).id },
         });
 
         if (usersWithPlan > 0) {
@@ -119,7 +119,7 @@ export async function DELETE (
         }
 
         await db.subscriptionPlan.delete({
-            where: { id: params.id },
+            where: { id: (await params).id },
         });
 
         return NextResponse.json({ success: true });

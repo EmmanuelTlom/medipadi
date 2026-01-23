@@ -1,22 +1,31 @@
-import { AlertCircle, BarChart3, CreditCard, FileText, Package, ShieldCheck, UserCheck, Users } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertCircle,
+  BarChart3,
+  CreditCard,
+  FileText,
+  Package,
+  ShieldCheck,
+  UserCheck,
+  Users,
+} from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { PageHeader } from "@/components/page-header";
-import { redirect } from "next/navigation";
-import { verifyAdmin } from "@/actions/admin";
+import { PageHeader } from '@/components/page-header';
+import { redirect } from 'next/navigation';
+import { verifyAdmin } from '@/actions/admin';
 
 export const metadata = {
-  title: "Admin Settings - MediPadi",
-  description: "Manage doctors, patients, agents, and platform settings",
+  title: 'Admin Settings - MediPadi',
+  description: 'Manage doctors, patients, agents, and platform settings',
 };
 
-export default async function AdminLayout ({ children }) {
+export default async function AdminLayout({ children }) {
   // Verify the user has admin access
   const isAdmin = await verifyAdmin();
 
   // Redirect if not an admin
   if (!isAdmin) {
-    redirect("/onboarding");
+    redirect('/onboarding');
   }
 
   return (
@@ -28,59 +37,59 @@ export default async function AdminLayout ({ children }) {
         defaultValue="pending"
         className="grid grid-cols-1 md:grid-cols-4 gap-6"
       >
-        <TabsList className="md:col-span-1 bg-muted/30 border h-14 md:h-auto flex sm:flex-row md:flex-col w-full p-2 md:p-1 rounded-md md:space-y-2 sm:space-x-2 md:space-x-0">
+        <TabsList className="md:col-span-1 bg-muted/30 border h-14 md:h-fit md:max-h-[calc(100vh-12rem)] md:overflow-y-auto flex sm:flex-row md:flex-col w-full p-2 md:p-1 rounded-md md:space-y-2 sm:space-x-2 md:space-x-0">
           <TabsTrigger
             value="pending"
-            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
+            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full md:flex-none"
           >
             <AlertCircle className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Pending Verification</span>
           </TabsTrigger>
           <TabsTrigger
             value="doctors"
-            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
+            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full md:flex-none"
           >
             <Users className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Doctors</span>
           </TabsTrigger>
           <TabsTrigger
             value="payouts"
-            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
+            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full md:flex-none"
           >
             <CreditCard className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Payouts</span>
           </TabsTrigger>
           <TabsTrigger
             value="claims"
-            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
+            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full md:flex-none"
           >
             <FileText className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Claims</span>
           </TabsTrigger>
           <TabsTrigger
             value="members"
-            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
+            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full md:flex-none"
           >
             <Users className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Members</span>
           </TabsTrigger>
           <TabsTrigger
             value="agents"
-            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
+            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full md:flex-none"
           >
             <UserCheck className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Agents</span>
           </TabsTrigger>
           <TabsTrigger
             value="reports"
-            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
+            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full md:flex-none"
           >
             <BarChart3 className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Reports</span>
           </TabsTrigger>
           <TabsTrigger
             value="plans"
-            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
+            className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full md:flex-none"
           >
             <Package className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Plans</span>
