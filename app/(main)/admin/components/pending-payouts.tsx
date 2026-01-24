@@ -32,7 +32,7 @@ import { approvePayout, getPendingPayouts } from '@/lib/requests/payouts';
 import { Badge } from '@/components/ui/badge';
 import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
-import { Money } from '@/lib/money';
+import { Money } from '@toneflix/money';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { toast } from 'sonner';

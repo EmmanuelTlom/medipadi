@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Member } from '@/interfaces/users';
-import { Money } from '@/lib/money';
+import { Money } from '@toneflix/money';
 import { Textarea } from '@/components/ui/textarea';
 import { alova } from '@/lib/alova';
 import { toast } from 'sonner';

@@ -24,12 +24,12 @@ import { FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User as Member } from '@prisma/client';
+import { Money } from '@toneflix/money';
 import { RegistrationSuccessDialog } from './registration-success-dialog';
 import { ValidationException } from '@/lib/Exceptions/ValidationException';
 import { alova } from '@/lib/alova';
 import { getUser } from '@/lib/requests/users';
 import { toast } from 'sonner';
-import { Money } from '@/lib/money';
 
 interface SubscriptionPlan {
   id: string;

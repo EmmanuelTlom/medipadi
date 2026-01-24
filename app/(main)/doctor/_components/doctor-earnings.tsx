@@ -25,11 +25,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Money } from '@toneflix/money';
 import { format } from 'date-fns';
 import { requestPayout } from '@/actions/payout';
 import { toast } from 'sonner';
 import useFetch from '@/hooks/use-fetch';
-import { Money } from '@/lib/money';
 
 export function DoctorEarnings({ earnings, payouts = [] }) {
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);

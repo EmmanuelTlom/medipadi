@@ -23,7 +23,7 @@ import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Money } from '@/lib/money';
+import { Money } from '@toneflix/money';
 import { Spinner } from '@/components/ui/spinner';
 import { User } from '@prisma/client';
 import { format } from 'date-fns';

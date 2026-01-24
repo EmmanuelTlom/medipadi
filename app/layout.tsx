@@ -3,13 +3,13 @@ import './globals.css';
 import { Facebook, Instagram, Linkedin, X } from 'lucide-react';
 
 import { ClerkProvider } from '@clerk/nextjs';
+import ClientBase from './ClientBase';
 import Header from '@/components/header';
 import { Inter } from 'next/font/google';
+import { Money } from '@toneflix/money';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from 'sonner';
 import { dark } from '@clerk/themes';
-import ClientBase from './ClientBase';
-import { Money } from '@/lib/money';
 
 const inter = Inter({ subsets: ['latin'] });
 Money.setDefaultCurrency('NGN');

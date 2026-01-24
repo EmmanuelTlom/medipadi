@@ -1,5 +1,6 @@
 'use client';
-import { Money } from '@/lib/money';
+
+import { Money } from '@toneflix/money';
 
 Money.setDefaultCurrency('NGN');
 

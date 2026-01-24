@@ -22,11 +22,11 @@ import { ClaimStatus, User } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
+import { Money } from '@toneflix/money';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getProviderClaims } from '@/lib/requests/claims';
 import { usePagination } from 'alova/client';
 import { useState } from 'react';
-import { Money } from '@/lib/money';
 
 export function ClaimHistory({ user }: { user: User }) {
   const [meta, setMeta] = useState({

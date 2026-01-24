@@ -32,13 +32,13 @@ import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
 import { ClaimStatus } from '@prisma/client';
 import { Label } from '@/components/ui/label';
+import { Money } from '@toneflix/money';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import useFetch from '@/hooks/use-fetch';
 import { usePagination } from 'alova/client';
 import { useState } from 'react';
-import { Money } from '@/lib/money';
 
 export function ClaimsManagement() {
   const [selectedClaim, setSelectedClaim] = useState(null);
