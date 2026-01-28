@@ -1,9 +1,10 @@
 import 'dotenv/config';
+
+import { Money } from '@toneflix/money';
 import { NextResponse } from 'next/server';
 import Paystack from 'paystack-sdk';
-import { db } from './prisma';
 import type { Transaction } from 'paystack-sdk/dist/transaction/interface';
-import { Money } from './money';
+import { db } from './prisma';
 
 type Metadata = {
   [key: string]: string | number | boolean | undefined;
