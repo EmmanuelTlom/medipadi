@@ -66,6 +66,20 @@ export async function processClaim (claimId: string, status: "APPROVED" | "REJEC
     }
 
     try {
+        // Fetch claim with provider and member details
+        const existingClaim = await db.claim.findUnique({
+            where: { id: claimId },
+            include: {
+                provider: true,
+                member: true,
+            },
+        });
+
+        if (!existingClaim) {
+            throw new Error("Claim not found");
+        }
+
+        // Update claim status
         const claim = await db.claim.update({
             where: { id: claimId },
             data: {
@@ -74,8 +88,65 @@ export async function processClaim (claimId: string, status: "APPROVED" | "REJEC
             },
         });
 
-        // TODO: Send notification to provider
-        // TODO: If approved, process payment
+        // Send notification to provider
+        const notificationMessage = status === "APPROVED"
+            ? `Your claim for ${existingClaim.member.firstName} ${existingClaim.member.lastName} (₦${existingClaim.amount.toFixed(2)}) has been APPROVED. ${adminNotes ? `Admin notes: ${adminNotes}` : 'Payment will be processed shortly.'}`
+            : `Your claim for ${existingClaim.member.firstName} ${existingClaim.member.lastName} (₦${existingClaim.amount.toFixed(2)}) has been REJECTED. ${adminNotes ? `Reason: ${adminNotes}` : ''}`;
+
+        // Send email notification
+        if (existingClaim.provider.email) {
+            try {
+                const { sendEmailNotification } = await import("@/lib/server.utils");
+                await sendEmailNotification(
+                    existingClaim.provider.email,
+                    `Claim ${status === "APPROVED" ? "Approved" : "Rejected"} - MediPadi`,
+                    `Hello ${existingClaim.provider.firstName} ${existingClaim.provider.lastName},\n\n` +
+                    notificationMessage +
+                    `\n\nClaim Details:\n` +
+                    `Claim ID: ${claimId}\n` +
+                    `Member: ${existingClaim.member.firstName} ${existingClaim.member.lastName}\n` +
+                    `Amount: ₦${existingClaim.amount.toFixed(2)}\n` +
+                    `Service Date: ${existingClaim.serviceDate.toLocaleDateString()}\n\n` +
+                    `Best regards,\nMediPadi Team`
+                );
+            } catch (emailError) {
+                console.error("Failed to send email notification:", emailError);
+            }
+        }
+
+        // Send SMS notification
+        if (existingClaim.provider.phoneNumber) {
+            try {
+                const { sendSMSNotification } = await import("@/lib/server.utils");
+                await sendSMSNotification(
+                    existingClaim.provider.phoneNumber,
+                    notificationMessage.substring(0, 160) // SMS character limit
+                );
+            } catch (smsError) {
+                console.error("Failed to send SMS notification:", smsError);
+            }
+        }
+
+        // If approved, create payout record for the provider
+        if (status === "APPROVED") {
+            try {
+                await db.payout.create({
+                    data: {
+                        doctorId: existingClaim.providerId,
+                        amount: existingClaim.amount,
+                        credits: 0, // Claims are direct amounts, not credit-based
+                        platformFee: 0, // No platform fee for provider claims
+                        netAmount: existingClaim.amount,
+                        status: "PROCESSING",
+                        paypalEmail: existingClaim.provider.email, // Use provider's email as default
+                        claimId: claimId, // Link to the claim
+                    },
+                });
+            } catch (payoutError) {
+                console.error("Failed to create payout record:", payoutError);
+                // Don't throw error - claim approval should still succeed
+            }
+        }
 
         return claim;
     } catch (error) {

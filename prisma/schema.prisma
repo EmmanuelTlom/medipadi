@@ -157,6 +157,7 @@ model Payout {
   netAmount   Float
   paypalEmail String
   status      PayoutStatus @default(PROCESSING)
+  claimId     String?      // Optional link to related claim
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   processedAt DateTime?

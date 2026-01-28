@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodError, ZodIssue } from "zod";
 
 import { auth } from "@clerk/nextjs/server";
-import { createClerkUser } from "@/lib/server.utils";
+import { createClerkUser, sendEmailNotification, sendSMSNotification } from "@/lib/server.utils";
 import crypto from "crypto";
 import { db } from "@/lib/prisma";
 import { registerMemberSchema } from "@/lib/validations/member";
@@ -141,8 +141,38 @@ export async function POST (request: NextRequest) {
             }),
         ]);
 
-        // TODO: Send email to member with login credentials (randomPassword)
-        // TODO: Send SMS notification
+        // Send email to member with login credentials
+        try {
+            await sendEmailNotification(
+                email,
+                'Welcome to MediPadi - Your Account Details',
+                `Hello ${firstName} ${lastName},\n\n` +
+                `Welcome to MediPadi! Your account has been successfully created by ${agent.firstName} ${agent.lastName}.\n\n` +
+                `Your Login Credentials:\n` +
+                `Email: ${email}\n` +
+                `Password: ${randomPassword}\n` +
+                `Membership ID: ${membershipId}\n\n` +
+                `Plan: ${subscriptionPlan.name}\n` +
+                `Credits: ${subscriptionPlan.credits}\n` +
+                `Valid Until: ${subscriptionEnd.toLocaleDateString()}\n\n` +
+                `Please login at ${process.env.NEXT_PUBLIC_APP_URL || 'https://medipadi.com'} and change your password.\n\n` +
+                `Best regards,\nMediPadi Team`
+            );
+        } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+        }
+
+        // Send SMS notification if phone number provided
+        if (phoneNumber) {
+            try {
+                await sendSMSNotification(
+                    phoneNumber,
+                    `Welcome to MediPadi! Your membership ID: ${membershipId}. Login credentials sent to ${email}. Credits: ${subscriptionPlan.credits}`
+                );
+            } catch (smsError) {
+                console.error('Failed to send SMS notification:', smsError);
+            }
+        }
 
         return NextResponse.json({
             success: true,

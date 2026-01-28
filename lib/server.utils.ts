@@ -20,13 +20,12 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_A
 
 export async function sendEmailNotification (to: string, subject: string, text: string) {
     try {
-        await transporter.sendMail({
+        return await transporter.sendMail({
             from: process.env.MAIL_SERVICE_USERNAME ?? '',
             to,
             subject,
             text,
         });
-        console.log("Email sent successfully");
     } catch (error) {
         console.error("Failed to send email:", error);
     }
@@ -34,12 +33,11 @@ export async function sendEmailNotification (to: string, subject: string, text: 
 
 export async function sendSMSNotification (to: string, message: string) {
     try {
-        await twilioClient.messages.create({
+        return await twilioClient.messages.create({
             body: message,
             from: process.env.TWILIO_PHONE_NUMBER,
             to,
         });
-        console.log("SMS sent successfully");
     } catch (error) {
         console.error("Failed to send SMS:", error);
     }
@@ -51,7 +49,7 @@ export async function sendSMSNotification (to: string, message: string) {
  */
 export async function generateQRCode (membershipId: string) {
     try {
-        const qrCodeDataURL = await QRCode.toDataURL(membershipId, {
+        return await QRCode.toDataURL(membershipId, {
             width: 200,
             margin: 2,
             color: {
@@ -59,7 +57,6 @@ export async function generateQRCode (membershipId: string) {
                 light: "#ffffff",
             },
         });
-        return qrCodeDataURL;
     } catch (error) {
         console.error("Failed to generate QR code:", error);
         throw new Error("Failed to generate QR code");
