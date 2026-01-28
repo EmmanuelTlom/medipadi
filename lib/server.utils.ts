@@ -5,16 +5,18 @@ import twilio from "twilio";
 
 // Add notification utility functions
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    service: (process.env.MAIL_SERVICE ?? 'smtp').toLowerCase(),
+    host: process.env.MAIL_SERVICE_HOST,
+    port: parseInt(process.env.MAIL_SERVICE_PORT ?? '587', 10),
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
+        user: process.env.MAIL_SERVICE_USERNAME ?? '',
+        pass: process.env.MAIL_SERVICE_PASSWORD ?? '',
+    }
 });
 
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-export async function sendEmailNotification (to, subject, text) {
+export async function sendEmailNotification (to: string, subject: string, text: string) {
     try {
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
