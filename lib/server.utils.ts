@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import QRCode from "qrcode";
 import { clerkClient } from "@clerk/nextjs/server";
 import nodemailer from "nodemailer";
@@ -30,7 +32,7 @@ export async function sendEmailNotification (to: string, subject: string, text: 
     }
 }
 
-export async function sendSMSNotification (to, message) {
+export async function sendSMSNotification (to: string, message: string) {
     try {
         await twilioClient.messages.create({
             body: message,
@@ -47,7 +49,7 @@ export async function sendSMSNotification (to, message) {
 /**
  * Generate QR code for membership ID
  */
-export async function generateQRCode (membershipId) {
+export async function generateQRCode (membershipId: string) {
     try {
         const qrCodeDataURL = await QRCode.toDataURL(membershipId, {
             width: 200,
