@@ -21,7 +21,7 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_A
 export async function sendEmailNotification (to: string, subject: string, text: string) {
     try {
         await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+            from: process.env.MAIL_SERVICE_USERNAME ?? '',
             to,
             subject,
             text,
