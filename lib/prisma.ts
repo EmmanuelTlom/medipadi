@@ -1,7 +1,7 @@
+import { Money } from "@toneflix/money";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from '@prisma/adapter-pg'
 import { pagination } from "prisma-extension-pagination";
-import { Money } from "./money";
 
 Money.setDefaultCurrency('NGN');
 

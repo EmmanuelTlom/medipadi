@@ -10,9 +10,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import VirtualAccountCard from '@/components/virtual-account-card';
+import { WelcomeDialog } from './_components/welcome-dialog';
 import { checkUser } from '@/lib/checkUser';
 import { generateQRCode } from '@/lib/server.utils';
-import { WelcomeDialog } from './_components/welcome-dialog';
 
 async function MembershipID() {
   const user = await checkUser();
@@ -138,6 +139,7 @@ async function MembershipID() {
             </div>
           </CardContent>
         </Card>
+        <VirtualAccountCard />
       </div>
     </div>
   );

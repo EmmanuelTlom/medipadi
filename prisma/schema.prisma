@@ -7,41 +7,48 @@ datasource db {
 }
 
 model User {
-  id                   String               @id @default(uuid())
-  clerkUserId          String               @unique
-  email                String               @unique
-  firstName            String?
-  lastName             String?
-  name                 String?
-  imageUrl             String?
-  role                 UserRole             @default(UNASSIGNED)
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
-  credits              Int                  @default(2)
-  specialty            String?
-  experience           Int?
-  credentialUrl        String?
-  description          String?
-  verificationStatus   VerificationStatus?  @default(PENDING)
-  phoneNumber          String?
-  walletBalance        Float                @default(0)
-  lastCreditAllocation DateTime?
-  membershipId         String?              @unique
-  subscriptionEnd      DateTime?
-  planId               String?
-  agentId              String?
-  doctorAppointments   Appointment[]        @relation("DoctorAppointments")
-  patientAppointments  Appointment[]        @relation("PatientAppointments")
-  transactions         CreditTransaction[]
-  walletTransactions   WalletTransaction[]
-  payouts              Payout[]
-  memberClaims         Claim[]              @relation("MemberClaims")
-  providerClaims       Claim[]              @relation("ProviderClaims")
-  paymentTransactions  Transaction[]
-  agent                User?                @relation("AgentMembers", fields: [agentId], references: [id], onDelete: SetNull)
-  registeredMembers    User[]               @relation("AgentMembers")
-  plan                 SubscriptionPlan?    @relation(fields: [planId], references: [id], onDelete: SetNull)
-  weeklyAvailability   WeeklyAvailability[]
+  id                      String               @id @default(uuid())
+  clerkUserId             String               @unique
+  email                   String               @unique
+  firstName               String?
+  lastName                String?
+  name                    String?
+  imageUrl                String?
+  role                    UserRole             @default(UNASSIGNED)
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  credits                 Int                  @default(2)
+  specialty               String?
+  experience              Int?
+  credentialUrl           String?
+  description             String?
+  verificationStatus      VerificationStatus?  @default(PENDING)
+  phoneNumber             String?
+  walletBalance           Float                @default(0)
+  lastCreditAllocation    DateTime?
+  membershipId            String?              @unique
+  subscriptionEnd         DateTime?
+  planId                  String?
+  agentId                 String?
+  // Paystack Virtual Account Fields
+  virtualAccountNumber    String?              @unique
+  virtualAccountBank      String?
+  virtualAccountName      String?
+  paystackCustomerId      String?              @unique
+  virtualAccountActive    Boolean              @default(false)
+  virtualAccountCreatedAt DateTime?
+  doctorAppointments      Appointment[]        @relation("DoctorAppointments")
+  patientAppointments     Appointment[]        @relation("PatientAppointments")
+  transactions            CreditTransaction[]
+  walletTransactions      WalletTransaction[]
+  payouts                 Payout[]
+  memberClaims            Claim[]              @relation("MemberClaims")
+  providerClaims          Claim[]              @relation("ProviderClaims")
+  paymentTransactions     Transaction[]
+  agent                   User?                @relation("AgentMembers", fields: [agentId], references: [id], onDelete: SetNull)
+  registeredMembers       User[]               @relation("AgentMembers")
+  plan                    SubscriptionPlan?    @relation(fields: [planId], references: [id], onDelete: SetNull)
+  weeklyAvailability      WeeklyAvailability[]
 }
 
 model WeeklyAvailability {
@@ -157,7 +164,7 @@ model Payout {
   netAmount   Float
   paypalEmail String
   status      PayoutStatus @default(PROCESSING)
-  claimId     String?      // Optional link to related claim
+  claimId     String? // Optional link to related claim
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   processedAt DateTime?
