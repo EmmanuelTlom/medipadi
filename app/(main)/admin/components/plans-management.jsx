@@ -24,6 +24,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { alova } from '@/lib/alova';
+import { toast } from 'sonner';
+import { useRequest } from 'alova/client';
 
 export function AdminPlansPage() {
   const [plans, setPlans] = useState([]);
@@ -91,24 +94,16 @@ export function AdminPlansPage() {
     }
   };
 
-  const handleDelete = async (planId) => {
-    if (!confirm('Are you sure you want to delete this plan?')) return;
-
-    try {
-      const response = await fetch(`/api/admin/subscription-plans/${planId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete plan');
-      }
-
-      await fetchPlans();
-    } catch (error) {
-      console.error('Failed to delete plan:', error);
-      alert('Failed to delete plan');
-    }
-  };
+  const { send: handleDelete, loading: deleting } = useRequest(
+    (planId) => alova.Delete(`/api/admin/subscription-plans/${planId}`),
+    {
+      immediate: false,
+    },
+  )
+    .onSuccess(() => fetchPlans())
+    .onError(({ error }) => {
+      toast.error(error.message ?? `Doctor Failed to delete plan`);
+    });
 
   const handleEdit = (plan) => {
     setEditingPlan(plan);
@@ -367,6 +362,7 @@ export function AdminPlansPage() {
                     size="sm"
                     className="text-red-500 hover:text-red-600 hover:bg-red-950/20"
                     onClick={() => handleDelete(plan.id)}
+                    disabled={deleting}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

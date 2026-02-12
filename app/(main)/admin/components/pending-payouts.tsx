@@ -311,7 +311,7 @@ export function PendingPayouts() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">
-                      Gross amount (10 USD/credit):
+                      Gross amount (10 {Money.currencySymbol()}/credit):
                     </span>
                     <span className="text-white">
                       {Money.format(selectedPayout.amount)}
@@ -319,7 +319,7 @@ export function PendingPayouts() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">
-                      Platform fee (2 USD/credit):
+                      Platform fee (2 {Money.currencySymbol()}/credit):
                     </span>
                     <span className="text-white">
                       -{Money.format(selectedPayout.platformFee)}

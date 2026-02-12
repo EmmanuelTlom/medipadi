@@ -12,6 +12,7 @@
     "migrate": "prisma migrate dev",
     "migrate:reset": "prisma migrate reset",
     "prisma:generate": "prisma generate",
+    "dummy": "tsx prisma/dummy.ts",
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
