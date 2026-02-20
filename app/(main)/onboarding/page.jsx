@@ -1,12 +1,12 @@
 'use client';
 
+import { Building2, Loader2, Stethoscope, User, UserCheck } from 'lucide-react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardTitle,
 } from '@/components/ui/card';
-import { Loader2, Stethoscope, User, UserCheck, Building2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { SPECIALTIES } from '@/lib/specialities';
 import { Textarea } from '@/components/ui/textarea';
 import { doctorFormSchema } from '@/lib/schema';
-import { fundWallet } from '@/actions/payout';
+// import { fundWallet } from '@/actions/payout';
 import { setUserRole } from '@/actions/onboarding';
 import useFetch from '@/hooks/use-fetch';
 import { useForm } from 'react-hook-form';
@@ -352,52 +352,52 @@ export default function OnboardingPage() {
   }
 
   // Add wallet funding form for agents
-  function WalletFundingForm() {
-    const [amount, setAmount] = useState(0);
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
+  // function WalletFundingForm() {
+  //   const [amount, setAmount] = useState(0);
+  //   const [loading, setLoading] = useState(false);
+  //   const [message, setMessage] = useState('');
 
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      setLoading(true);
-      setMessage('');
+  //   const handleSubmit = async (e) => {
+  //     e.preventDefault();
+  //     setLoading(true);
+  //     setMessage('');
 
-      try {
-        const agentId = 'agent-id-placeholder'; // Replace with actual agent ID
-        await fundWallet(agentId, amount);
-        setMessage('Wallet funded successfully!');
-      } catch (error) {
-        setMessage('Failed to fund wallet: ' + error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  //     try {
+  //       const agentId = 'agent-id-placeholder'; // Replace with actual agent ID
+  //       await fundWallet(agentId, amount);
+  //       setMessage('Wallet funded successfully!');
+  //     } catch (error) {
+  //       setMessage('Failed to fund wallet: ' + error.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label
-          htmlFor="amount"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Amount to Fund
-        </label>
-        <input
-          type="number"
-          id="amount"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          className="block w-full p-2 border border-gray-300 rounded-md"
-          required
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-          disabled={loading}
-        >
-          {loading ? 'Processing...' : 'Fund Wallet'}
-        </button>
-        {message && <p className="text-sm text-gray-600 mt-2">{message}</p>}
-      </form>
-    );
-  }
+  //   return (
+  //     <form onSubmit={handleSubmit} className="space-y-4">
+  //       <label
+  //         htmlFor="amount"
+  //         className="block text-sm font-medium text-gray-700"
+  //       >
+  //         Amount to Fund
+  //       </label>
+  //       <input
+  //         type="number"
+  //         id="amount"
+  //         value={amount}
+  //         onChange={(e) => setAmount(Number(e.target.value))}
+  //         className="block w-full p-2 border border-gray-300 rounded-md"
+  //         required
+  //       />
+  //       <button
+  //         type="submit"
+  //         className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+  //         disabled={loading}
+  //       >
+  //         {loading ? 'Processing...' : 'Fund Wallet'}
+  //       </button>
+  //       {message && <p className="text-sm text-gray-600 mt-2">{message}</p>}
+  //     </form>
+  //   );
+  // }
 }
