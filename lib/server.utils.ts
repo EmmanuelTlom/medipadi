@@ -49,7 +49,7 @@ export async function sendSMSNotification (to: string, message: string) {
  */
 export async function generateQRCode (membershipId: string) {
     try {
-        return await QRCode.toDataURL(membershipId, {
+        return await QRCode?.toDataURL(membershipId, {
             width: 200,
             margin: 2,
             color: {

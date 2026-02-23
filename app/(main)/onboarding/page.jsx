@@ -109,12 +109,12 @@ export default function OnboardingPage() {
   // Role selection screen
   if (step === 'choose-role') {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card
           className="border-emerald-900/20 hover:border-emerald-700/40 cursor-pointer transition-all"
           onClick={() => !loading && handlePatientSelection()}
         >
-          <CardContent className="pt-6 pb-6 flex flex-col items-center text-center">
+          <CardContent className="pt-6 pb-6 flex w-full flex-col items-center text-center">
             <div className="p-4 bg-emerald-900/20 rounded-full mb-4">
               <User className="h-8 w-8 text-emerald-400" />
             </div>

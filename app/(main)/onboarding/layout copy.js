@@ -9,27 +9,27 @@ export const dynamic = "force-dynamic";
 export default async function OnboardingLayout({ children }) {
   // Get complete user profile
   const user = await getCurrentUser();
-  // console.log("Current user in onboarding layout:", user);
-  // // Redirect users who have already completed onboarding
-  // if (user) {
-  //   if (user.role === "PATIENT") {
-  //     redirect("/member");
-  //   } else if (user.role === "DOCTOR") {
-  //     // Check verification status for doctors
-  //     if (user.verificationStatus === "VERIFIED") {
-  //       redirect("/doctor");
-  //     } else {
-  //       redirect("/doctor/verification");
-  //     }
-  //   } else if (user.role === "ADMIN") {
-  //     redirect("/admin");
-  //   } else if (user.role === "AGENT") {
-  //     redirect("/agent");
-  //   } else if (user.role === "PROVIDER") {
-  //     redirect("/provider");
+  console.log("Current user in onboarding layout:", user);
+  // Redirect users who have already completed onboarding
+  if (user) {
+    if (user.role === "PATIENT") {
+      redirect("/member");
+    } else if (user.role === "DOCTOR") {
+      // Check verification status for doctors
+      if (user.verificationStatus === "VERIFIED") {
+        redirect("/doctor");
+      } else {
+        redirect("/doctor/verification");
+      }
+    } else if (user.role === "ADMIN") {
+      redirect("/admin");
+    } else if (user.role === "AGENT") {
+      redirect("/agent");
+    } else if (user.role === "PROVIDER") {
+      redirect("/provider");
       
-  //   }
-  // }
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
