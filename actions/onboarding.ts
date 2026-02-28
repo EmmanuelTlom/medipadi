@@ -3,6 +3,7 @@
 import { UserRole } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
+import { redirectPath } from "@/lib/requests/users";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -24,26 +25,11 @@ export async function setUserRole (formData: FormData) {
 
   const role = formData.get("role") as UserRole;
 
-  if (!role || !["PATIENT", "DOCTOR"].includes(role)) {
+  if (!role || !["PATIENT", "DOCTOR", "AGENT", "PROVIDER"].includes(role)) {
     throw new Error("Invalid role selection");
   }
 
   try {
-    // For patient role - simple update
-    if (role === "PATIENT") {
-      await db.user.update({
-        where: {
-          clerkUserId: userId,
-        },
-        data: {
-          role: "PATIENT",
-        },
-      });
-
-      revalidatePath("/");
-      return { success: true, redirect: "/doctors" };
-    }
-
     // For doctor role - need additional information
     if (role === "DOCTOR") {
       const specialty = formData.get("specialty");
@@ -70,8 +56,48 @@ export async function setUserRole (formData: FormData) {
         },
       });
 
+      const weeklySchedules = [
+        { dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isActive: true }, // Monday
+        { dayOfWeek: 2, startTime: '09:00', endTime: '17:00', isActive: true }, // Tuesday
+        { dayOfWeek: 3, startTime: '09:00', endTime: '17:00', isActive: true }, // Wednesday
+        { dayOfWeek: 4, startTime: '09:00', endTime: '17:00', isActive: true }, // Thursday
+        { dayOfWeek: 5, startTime: '09:00', endTime: '17:00', isActive: true }, // Friday
+      ];
+
+      for (const schedule of weeklySchedules) {
+        await db.weeklyAvailability.upsert({
+          where: {
+            id: `${user.id}-day-${schedule.dayOfWeek}`,
+            doctorId: user.id,
+          },
+          update: {},
+          create: {
+            id: `${user.id}-day-${schedule.dayOfWeek}`,
+            doctorId: user.id,
+            dayOfWeek: schedule.dayOfWeek,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            isActive: schedule.isActive,
+          },
+        });
+      }
+
       revalidatePath("/");
-      return { success: true, redirect: "/doctor/verification" };
+      return { success: true, redirect: redirectPath(role, user.verificationStatus) };
+    } else {
+      // For other role - simple update
+      await db.user.update({
+        where: {
+          clerkUserId: userId,
+        },
+        data: {
+          role: role,
+        },
+      });
+
+      revalidatePath("/");
+      return { success: true, redirect: redirectPath(role, user.verificationStatus) };
+
     }
   } catch (error) {
     console.error("Failed to set user role:", error);

@@ -2,6 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
+import { redirectPath } from "./lib/requests/users";
 
 const isProtectedRoute = createRouteMatcher([
   "/doctors(.*)",
@@ -11,29 +12,6 @@ const isProtectedRoute = createRouteMatcher([
   "/video-call(.*)",
   "/appointments(.*)",
 ]);
-
-
-function redirectByRole (role, verificationStatus, req) {
-  const url = req.nextUrl.clone();
-
-  if (role === "PATIENT") {
-    url.pathname = "/member";
-  } else if (role === "DOCTOR") {
-    url.pathname =
-      verificationStatus === "VERIFIED"
-        ? "/doctor"
-        : "/doctor/verification";
-  } else if (role === "ADMIN") {
-    url.pathname = "/admin";
-  } else if (role === "AGENT") {
-    url.pathname = "/agent";
-  } else if (role === "PROVIDER") {
-    url.pathname = "/provider";
-  }
-
-  return NextResponse.redirect(url);
-}
-
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId, redirectToSignIn } = await auth();
@@ -55,8 +33,12 @@ export default clerkMiddleware(async (auth, req) => {
   if (!user) return NextResponse.next();
 
   // If user is on onboarding but already has role
-  if (url.pathname.startsWith("/onboarding") && user.role) {
-    return redirectByRole(user.role, user.verificationStatus, req);
+  if (url.pathname.startsWith("/onboarding") && user.role && user.role !== "UNASSIGNED") {
+    const url = req.nextUrl.clone();
+
+    url.pathname = redirectPath(user.role, user.verificationStatus)
+
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
