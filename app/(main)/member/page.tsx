@@ -17,7 +17,11 @@ import { generateQRCode } from '@/lib/server.utils';
 
 async function MembershipID() {
   const user = await checkUser();
-  const qrCode = await generateQRCode(user.membershipId);
+  console.log("User data in MembershipID page:", user);
+  const qrCode = user.membershipId ? await generateQRCode(user.membershipId) : null;
+  console.log("Generated QR code:", qrCode);
+
+  // const qrCode = await generateQRCode(user.membershipId);
 
   // Check if renewal is needed (example: if credits are 0 or lastCreditAllocation is more than 30 days ago)
   const needsRenewal = user.credits === 0;
@@ -26,8 +30,8 @@ async function MembershipID() {
     : null;
   const daysSinceAllocation = lastAllocation
     ? Math.floor(
-        (Date.now() - lastAllocation.getTime()) / (1000 * 60 * 60 * 24),
-      )
+      (Date.now() - lastAllocation.getTime()) / (1000 * 60 * 60 * 24),
+    )
     : null;
 
   return (
@@ -57,13 +61,13 @@ async function MembershipID() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
+            {qrCode && (<div> <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Membership ID</p>
               <p className="text-lg font-mono text-white bg-muted/20 p-3 rounded-lg border border-emerald-900/20">
                 {user.membershipId}
               </p>
             </div>
-            {qrCode && (
+
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">QR Code</p>
                 <div className="flex justify-center bg-white p-4 rounded-lg">
@@ -76,6 +80,19 @@ async function MembershipID() {
                 <p className="text-xs text-muted-foreground text-center">
                   Show this QR code at healthcare facilities for verification
                 </p>
+              </div>
+            </div>
+            )}
+            {!qrCode && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">You don't have a membership yet, to get membership...</p>
+                <div className="pt-4">
+                  <Link href="/pricing">
+                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                      Upgrade Plan
+                    </Button>
+                  </Link>
+                </div>
               </div>
             )}
           </CardContent>
