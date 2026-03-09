@@ -585,6 +585,13 @@ export default async function Home() {
                   >
                     <Link href="#pricing">View Pricing</Link>
                   </Button>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="border-emerald-700/30 hover:bg-muted/80"
+                  >
+                    <Link href="/privacy">Privacy Policy</Link>
+                  </Button>
                 </div>
               </div>
 
