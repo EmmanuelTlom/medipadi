@@ -3,14 +3,20 @@ import { db } from '@/lib/prisma';
 
 export async function GET(
   _: NextRequest,
-  { params }: { params: Promise<{ slug: string }> },
+  { params }: { params: Promise<{ slug?: string[] }> }
 ) {
-  const slug = (await params)?.slug?.[0];
+
+  const { slug } = await params;
+  const slugValue = slug?.[0];
 
   try {
-    if (slug) {
+
+    if (slugValue) {
       const data = await db.subscriptionPlan.findFirst({
-        where: { isActive: true, slug },
+        where: {
+          isActive: true,
+          slug: slugValue,
+        },
       });
 
       return NextResponse.json({ data });
@@ -22,11 +28,14 @@ export async function GET(
     });
 
     return NextResponse.json({ data });
+
   } catch (error) {
+
     console.error('Error fetching subscription plans:', error);
+
     return NextResponse.json(
       { error: 'Failed to fetch subscription plans' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
