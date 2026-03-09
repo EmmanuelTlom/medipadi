@@ -6,7 +6,8 @@ import { processSubscription, processFundWallet } from '@/lib/payments';
 // GET single transaction
 export async function GET (
     request: Request,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
+    // { params }: { params: { id: string } }
 ) {
     try {
         const { userId } = await auth();
@@ -24,8 +25,9 @@ export async function GET (
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
+        const { id } = await context.params;
         const transaction = await db.transaction.findUnique({
-            where: { id: params.id },
+            where: { id: id },
             include: {
                 user: {
                     select: {
@@ -60,11 +62,12 @@ export async function GET (
 // PATCH transaction (retry, refund, etc.)
 export async function PATCH (
     request: Request,
-    { params }: { params: { id: string } }
+    // { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         const { userId } = await auth();
-
+        const { id } = await context.params;
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -79,9 +82,9 @@ export async function PATCH (
         }
 
         const { action, notes } = await request.json();
-
+        
         const transaction = await db.transaction.findUnique({
-            where: { id: params.id },
+            where: { id: id },
             include: { user: true },
         });
 
@@ -120,7 +123,7 @@ export async function PATCH (
                     }
 
                     updatedTransaction = await db.transaction.update({
-                        where: { id: params.id },
+                        where: { id: id },
                         data: {
                             serviceProvided: true,
                             serviceProvidedAt: new Date(),
@@ -131,7 +134,7 @@ export async function PATCH (
                     });
                 } catch (error) {
                     updatedTransaction = await db.transaction.update({
-                        where: { id: params.id },
+                        where: { id: id },
                         data: {
                             webhookAttempts: { increment: 1 },
                             lastWebhookAt: new Date(),
@@ -144,7 +147,7 @@ export async function PATCH (
 
             case 'refund':
                 updatedTransaction = await db.transaction.update({
-                    where: { id: params.id },
+                    where: { id: id },
                     data: {
                         status: 'REFUNDED',
                         notes: notes || 'Refunded by admin',
@@ -154,7 +157,7 @@ export async function PATCH (
 
             case 'mark_disputed':
                 updatedTransaction = await db.transaction.update({
-                    where: { id: params.id },
+                    where: { id: id },
                     data: {
                         status: 'DISPUTED',
                         notes: notes || 'Marked as disputed by admin',
@@ -164,7 +167,7 @@ export async function PATCH (
 
             case 'update_notes':
                 updatedTransaction = await db.transaction.update({
-                    where: { id: params.id },
+                    where: { id: id },
                     data: { notes },
                 });
                 break;
