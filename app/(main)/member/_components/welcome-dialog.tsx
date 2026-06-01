@@ -153,31 +153,31 @@ export function WelcomeDialog() {
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
                   <span className="text-sm text-muted-foreground">
-                    {plan.credits} video consultation credits
+                    {plan.credits} outpatient visit credits at partner clinics
                   </span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
                   <span className="text-sm text-muted-foreground">
-                    Access to all verified specialists
+                    Up to ₦5,000 claim cap per illness episode
                   </span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
                   <span className="text-sm text-muted-foreground">
-                    24/7 appointment booking
+                    Coverage begins 14 days from today
                   </span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
                   <span className="text-sm text-muted-foreground">
-                    Secure medical records storage
+                    Zero paperwork — provider submits claims on your behalf
                   </span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-emerald-400 mr-2 flex-shrink-0 mt-0.5" />
                   <span className="text-sm text-muted-foreground">
-                    Digital membership ID and QR code
+                    Digital membership QR card — always accessible on your phone
                   </span>
                 </li>
               </ul>

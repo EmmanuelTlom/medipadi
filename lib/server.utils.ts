@@ -18,17 +18,58 @@ const transporter = nodemailer.createTransport({
 
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-export async function sendEmailNotification (to: string, subject: string, text: string) {
+export async function sendEmailNotification (to: string, subject: string, text: string, html?: string) {
     try {
         return await transporter.sendMail({
-            from: process.env.MAIL_SERVICE_USERNAME ?? '',
+            from: `MediPadi <${process.env.MAIL_SERVICE_USERNAME ?? ''}>`,
             to,
             subject,
             text,
+            html,
         });
     } catch (error) {
         console.error("Failed to send email:", error);
     }
+}
+
+export function buildWelcomeEmailText ({ name, email, membershipId }: { name: string; email: string; membershipId: string }) {
+    return `Welcome to MediPadi, ${name}!
+
+Your account has been created successfully.
+
+Account Details:
+  Name: ${name}
+  Email: ${email}
+  Membership ID: ${membershipId}
+
+Getting Started:
+  1. Log in at your dashboard and choose a health plan
+  2. Coverage begins 14 days after plan activation
+  3. Show your QR code at any certified MediPadi partner clinic
+
+Questions? Reply to this email or visit our website.
+
+Welcome to the MediPadi family!
+Team MediPadi`;
+}
+
+export function buildSubscriptionEmailText ({ name, planName, credits, subscriptionEnd }: { name: string; planName: string; credits: number; subscriptionEnd: Date }) {
+    return `Hello ${name},
+
+Your MediPadi subscription has been activated!
+
+Plan: ${planName}
+Credits: ${credits}
+Coverage Until: ${subscriptionEnd.toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+
+Important reminders:
+  - Coverage begins 14 days from activation
+  - Visit any certified MediPadi partner clinic to use your benefits
+  - Show your QR code for instant verification
+  - Each illness episode is covered up to a ₦5,000 claim cap
+
+Thank you for choosing MediPadi.
+Team MediPadi`;
 }
 
 export async function sendSMSNotification (to: string, message: string) {

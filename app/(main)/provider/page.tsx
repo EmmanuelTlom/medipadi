@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { ClaimHistory } from './_components/claim-history';
 import { ClaimSubmission } from './_components/claim-submission';
-import { PageHeader } from '@/components/page-header';
 import { QRScanner } from './_components/qr-scanner';
 import { getCurrentUser } from '@/actions/onboarding';
 import { redirect } from 'next/navigation';
@@ -11,14 +10,38 @@ import { redirect } from 'next/navigation';
 export default async function ProviderDashboardPage() {
   const user = await getCurrentUser();
 
-  // Redirect if not a provider
   if (user?.role !== 'PROVIDER') {
     redirect('/onboarding');
   }
 
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+  const displayName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+    user?.name ||
+    'Provider';
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <PageHeader icon={<Stethoscope />} title="Provider Dashboard" />
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Hero greeting */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-6 md:p-8">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white translate-x-20 -translate-y-20" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white -translate-x-16 translate-y-16" />
+        </div>
+        <div className="relative">
+          <p className="text-emerald-200 text-sm font-medium">{greeting}</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mt-1">
+            {displayName}
+          </h1>
+          <p className="text-emerald-200 text-sm mt-1 flex items-center gap-1">
+            <Stethoscope className="h-4 w-4" />
+            Provider Dashboard · {user.email}
+          </p>
+        </div>
+      </div>
 
       <Tabs
         defaultValue="submit"

@@ -2,13 +2,15 @@
 
 import { DedicatedAccountData } from 'paystack-sdk/dist/dedicated/interface';
 import { auth } from '@clerk/nextjs/server';
-import { createVirtualAccount } from '@/lib/payments';
+import { createVirtualAccount, processVirtualAccountPayment } from '@/lib/payments';
 import { db } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 /**
- * Request a Paystack virtual account for the authenticated member
+ * Request a Paystack virtual account for the authenticated member.
+ * Optionally accepts a phone number to save before creating the account.
  */
-export async function requestVirtualAccount () {
+export async function requestVirtualAccount(phoneOverride?: string) {
     const { userId } = await auth();
 
     if (!userId) {
@@ -16,10 +18,16 @@ export async function requestVirtualAccount () {
     }
 
     try {
+        // If a phone was provided, persist it first so it's available below
+        if (phoneOverride?.trim()) {
+            await db.user.update({
+                where: { clerkUserId: userId },
+                data: { phoneNumber: phoneOverride.trim() },
+            });
+        }
+
         const user = await db.user.findUnique({
-            where: {
-                clerkUserId: userId,
-            },
+            where: { clerkUserId: userId },
             select: {
                 id: true,
                 email: true,
@@ -27,6 +35,7 @@ export async function requestVirtualAccount () {
                 lastName: true,
                 name: true,
                 role: true,
+                phoneNumber: true,
                 virtualAccountNumber: true,
                 virtualAccountBank: true,
                 virtualAccountName: true,
@@ -40,7 +49,6 @@ export async function requestVirtualAccount () {
             throw new Error('User not found');
         }
 
-        // Only members (patients) can request virtual accounts
         if (user.role !== 'PATIENT') {
             throw new Error('Only members can request virtual accounts.');
         }
@@ -49,7 +57,11 @@ export async function requestVirtualAccount () {
             throw new Error('Email is required to create a virtual account.');
         }
 
-        // Check if user already has an active virtual account
+        if (!user.phoneNumber) {
+            throw new Error('Phone number is required to create a virtual account. Please add your phone number first.');
+        }
+
+        // Return early if account already exists
         if (user.virtualAccountActive && user.virtualAccountNumber) {
             return {
                 success: true,
@@ -66,22 +78,22 @@ export async function requestVirtualAccount () {
         }
 
         const firstName = user.firstName || user.name?.split(' ')[0] || 'Member';
-        const lastName =
-            user.lastName || user.name?.split(' ').slice(1).join(' ') || '';
+        const lastName = user.lastName || user.name?.split(' ').slice(1).join(' ') || '';
 
         const { data, message, success } = (await createVirtualAccount(
             user.id,
             user.email,
             firstName,
-            lastName
+            lastName,
+            user.phoneNumber
         )) as {
-            data: DedicatedAccountData,
-            success: boolean,
-            message: string
+            data: DedicatedAccountData;
+            success: boolean;
+            message: string;
         };
 
         if (!success) {
-            throw new Error('Failed to create virtual account:' + message);
+            throw new Error('Failed to create virtual account: ' + message);
         }
 
         return {
@@ -93,7 +105,7 @@ export async function requestVirtualAccount () {
                 accountName: data.account_name,
                 customerCode: (data as any).customer_code || data.customer?.customer_code,
             },
-            message: message,
+            message,
         };
     } catch (error) {
         throw new Error(
@@ -105,7 +117,7 @@ export async function requestVirtualAccount () {
 /**
  * Get the virtual account details for the authenticated member
  */
-export async function getVirtualAccount () {
+export async function getVirtualAccount() {
     const { userId } = await auth();
 
     if (!userId) {
@@ -114,9 +126,7 @@ export async function getVirtualAccount () {
 
     try {
         const user = await db.user.findUnique({
-            where: {
-                clerkUserId: userId,
-            },
+            where: { clerkUserId: userId },
             select: {
                 virtualAccountNumber: true,
                 virtualAccountBank: true,
@@ -127,16 +137,14 @@ export async function getVirtualAccount () {
             },
         });
 
-        if (!user) {
-            throw new Error('User not found');
-        }
+        if (!user) throw new Error('User not found');
 
         if (!user.virtualAccountActive || !user.virtualAccountNumber) {
             return {
                 success: false,
                 hasAccount: false,
                 data: null,
-                message: 'No virtual account found. Create one first.',
+                message: 'No virtual account found.',
             };
         }
 
@@ -157,4 +165,62 @@ export async function getVirtualAccount () {
             'Failed to get virtual account: ' + (error as Error).message
         );
     }
+}
+
+/**
+ * Manually poll Paystack for unprocessed payments on the user's virtual account.
+ * Useful when webhooks can't reach the server (e.g. local development).
+ */
+export async function checkPendingPayments() {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    const user = await db.user.findUnique({
+        where: { clerkUserId: userId },
+        select: { id: true, paystackCustomerId: true },
+    });
+
+    if (!user?.paystackCustomerId) {
+        return { processed: 0, message: 'No virtual account found.' };
+    }
+
+    const res = await fetch(
+        `https://api.paystack.co/transaction?customer=${user.paystackCustomerId}&status=success&perPage=20`,
+        {
+            headers: {
+                Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            cache: 'no-store',
+        },
+    );
+
+    const data = await res.json();
+    if (!data.status) return { processed: 0, message: 'Unable to reach Paystack.' };
+
+    let processed = 0;
+    for (const txn of data.data ?? []) {
+        if (txn.channel !== 'dedicated_nuban') continue;
+
+        const existing = await db.transaction.findUnique({
+            where: { reference: txn.reference },
+        });
+        if (existing?.serviceProvided) continue;
+
+        try {
+            await processVirtualAccountPayment(user.id, txn.amount, txn.reference);
+            processed++;
+        } catch (err) {
+            console.error('checkPendingPayments: failed to process', txn.reference, err);
+        }
+    }
+
+    if (processed > 0) revalidatePath('/member');
+
+    return {
+        processed,
+        message: processed > 0
+            ? `${processed} payment${processed > 1 ? 's' : ''} applied to your wallet.`
+            : 'No new payments found.',
+    };
 }

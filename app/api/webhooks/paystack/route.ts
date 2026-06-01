@@ -45,11 +45,16 @@ export async function POST(request: NextRequest) {
           })
         }
 
-        const accountNumber = data.authorization?.account_number
+        // For dedicated_nuban charges the recipient account is in dedicated_account,
+        // not authorization (which holds the sender's bank details).
+        const accountNumber =
+          data.dedicated_account?.account_number ||
+          data.authorization?.account_number
         const reference = data.reference
         const amount = data.amount
 
         if (!accountNumber || !reference || !amount) {
+          console.error('Webhook missing fields:', { accountNumber, reference, amount, channel: data.channel })
           return NextResponse.json(
             { error: 'Missing required fields' },
             { status: 400 }
@@ -61,7 +66,7 @@ export async function POST(request: NextRequest) {
         })
 
         if (!user) {
-          console.error('User not found for virtual account:', accountNumber)
+          console.error('User not found for virtual account:', accountNumber, '— check dedicated_account payload')
           return NextResponse.json(
             { error: 'User not found' },
             { status: 404 }

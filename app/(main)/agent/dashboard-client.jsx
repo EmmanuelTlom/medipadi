@@ -7,23 +7,53 @@ import { useEffect, useState } from 'react';
 import { AgentMembersList } from './_components/agent-members-list';
 import { AgentWalletFunding } from './_components/wallet-funding';
 import { MemberRegistration } from './_components/member-registration';
-import { PageHeader } from '@/components/page-header';
+import { Money } from '@toneflix/money';
 
 export default function AgentDashboardPage({ user }) {
   const [activeTab, setActiveTab] = useState('wallet');
 
-  // Listen for custom event to switch tabs
   useEffect(() => {
     const handleSwitchTab = (event) => {
       setActiveTab(event.detail);
     };
-
     window.addEventListener('switchTab', handleSwitchTab);
     return () => window.removeEventListener('switchTab', handleSwitchTab);
   }, []);
+
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+  const displayName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+    user?.name ||
+    'Agent';
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <PageHeader icon={<UserCheck />} title="Agent Dashboard" />
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Hero greeting */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-6 md:p-8">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white translate-x-20 -translate-y-20" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white -translate-x-16 translate-y-16" />
+        </div>
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <p className="text-emerald-200 text-sm font-medium">{greeting}</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mt-1">
+              {displayName}
+            </h1>
+            <p className="text-emerald-200 text-sm mt-1 flex items-center gap-1">
+              <UserCheck className="h-4 w-4" />
+              Agent Dashboard
+            </p>
+          </div>
+          <div className="bg-white/10 rounded-xl px-5 py-3 text-white backdrop-blur-sm border border-white/10 shrink-0">
+            <p className="text-xs text-emerald-200 font-medium">Wallet Balance</p>
+            <p className="text-2xl font-bold">{Money.format(user.walletBalance || 0)}</p>
+          </div>
+        </div>
+      </div>
 
       <Tabs
         value={activeTab}

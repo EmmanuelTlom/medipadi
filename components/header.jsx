@@ -25,15 +25,22 @@ export default async function Header() {
   }
 
   return (
-    <header className="fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-10 supports-[backdrop-filter]:bg-background/60 nav overflow-hidden">
+    <header className="fixed overflow-y-hidden top-0 w-full border-b bg-background/80 backdrop-blur-md z-10 supports-[backdrop-filter]:bg-background/60 nav">
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 cursor-pointer">
           <Image
             src="/logo2.png"
             alt="MediPadi Logo"
-            width={200}
-            height={50}
-            className="h-70 m-[-25%] w-auto object-contain bg-white mx-auto"
+            width={220}
+            height={56}
+            className="object-contain"
+            style={{
+              height: '194px',
+              width: 'auto',
+              background: 'white',
+              borderRadius: '8px',
+              padding: '4px 12px',
+            }}
           />
         </Link>
 
@@ -151,14 +158,18 @@ export default async function Header() {
             )}
           </SignedIn>
 
-          {(!user || user?.role !== 'ADMIN') && (
+          {user && user.role !== 'ADMIN' && (
             <Link
               href={
-                user?.role === 'PATIENT'
+                user.role === 'PATIENT'
                   ? '/pricing'
-                  : user?.role === 'DOCTOR'
+                  : user.role === 'DOCTOR'
                     ? '/doctor'
-                    : '#'
+                    : user.role === 'AGENT'
+                      ? '/agent'
+                      : user.role === 'PROVIDER'
+                        ? '/provider'
+                        : '/pricing'
               }
             >
               <Badge
@@ -167,20 +178,24 @@ export default async function Header() {
               >
                 <CreditCard className="h-3.5 w-3.5 text-emerald-400" />
                 <span className="text-emerald-400">
-                  {user && user.role !== 'ADMIN' ? (
-                    <>
-                      {user.credits}{' '}
-                      <span className="hidden md:inline">
-                        {user?.role === 'PATIENT'
-                          ? 'Credits'
-                          : 'Earned Credits'}
-                      </span>
-                    </>
-                  ) : (
-                    <>Pricing</>
-                  )}
+                  {user.credits}{' '}
+                  <span className="hidden md:inline">
+                    {user.role === 'PATIENT' ? 'Credits' : 'Earned Credits'}
+                  </span>
                 </span>
               </Badge>
+            </Link>
+          )}
+
+          {!user && (
+            <Link href="/#pricing">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden md:inline-flex text-muted-foreground hover:text-white"
+              >
+                Pricing
+              </Button>
             </Link>
           )}
 

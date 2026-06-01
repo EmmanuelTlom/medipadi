@@ -4,6 +4,7 @@ import {
   processFundWallet,
   processSubscription,
 } from '@/lib/payments';
+import { buildSubscriptionEmailText, sendEmailNotification } from '@/lib/server.utils';
 
 import { db } from '@/lib/prisma';
 import { getCurrentUser } from '@/actions/onboarding';
@@ -144,6 +145,22 @@ export async function GET (request: NextRequest) {
     };
 
     const result = await callbacks[pType]();
+
+    // Send subscription confirmation email (fire-and-forget)
+    if (pType === 'subscription') {
+      const planId = String(data.metadata.planId);
+      db.subscriptionPlan.findUnique({ where: { id: planId } }).then((plan) => {
+        if (!plan || !user.email) return;
+        const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.name || 'Member';
+        const subscriptionEnd = new Date();
+        subscriptionEnd.setMonth(subscriptionEnd.getMonth() + plan.duration);
+        sendEmailNotification(
+          user.email,
+          `Your ${plan.name} is now active — MediPadi`,
+          buildSubscriptionEmailText({ name: displayName, planName: plan.name, credits: plan.credits, subscriptionEnd })
+        ).catch(console.error);
+      }).catch(console.error);
+    }
 
     // Mark service as provided
     await db.transaction.update({

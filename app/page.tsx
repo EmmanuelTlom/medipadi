@@ -128,41 +128,63 @@ const faqs = [
   },
 ];
 
+const dashboardByRole: Partial<Record<string, string>> = {
+  PATIENT: '/member',
+  DOCTOR: '/doctor',
+  AGENT: '/agent',
+  PROVIDER: '/provider',
+  ADMIN: '/admin',
+  UNASSIGNED: '/onboarding',
+};
+
 export default async function Home() {
   const user = await getCurrentUser();
+  const dashboardPath = user ? (dashboardByRole[user.role] ?? '/onboarding') : null;
 
   return (
     <div className="bg-background">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-32">
+      <section className="relative overflow-hidden py-20 md:py-28">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+            <div className="space-y-7">
               <Badge
                 variant="outline"
                 className="bg-emerald-900/30 border-emerald-700/30 px-4 py-2 text-emerald-400 text-sm font-medium"
               >
-                Healthcare made simple
+                Prepaid health support · Starting in Kuje
               </Badge>
-              <h1 className="text-3xl max-w-[600px] md:text-3xl lg:text-4xl font-bold text-white leading-tight">
-                Get your medical needs 
-                <span className="text-italic"> met</span>
-                <span className="gradient-title"> anytime, anywhere.</span>
+              <h1 className="text-3xl max-w-[600px] md:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                Healthcare coverage{' '}
+                <span className="gradient-title">your community can afford.</span>
               </h1>
-              <p className="text-muted-foreground text-lg md:text-xl max-w-md">
-                Book appointments, consult via video, and manage your healthcare
-                journey all in one secure platform.
+              <p className="text-muted-foreground text-base md:text-lg max-w-md leading-relaxed">
+                MediPadi is a prepaid health support plan — not insurance. Pay
+                as little as ₦1,200/month and get covered for malaria, flu,
+                infections, and more at certified partner clinics.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-emerald-600 text-white hover:bg-emerald-700"
-                >
-                  <Link href="/onboarding">
-                    Get Started <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                {dashboardPath ? (
+                  <Button
+                    asChild
+                    size="lg"
+                    className="bg-emerald-600 text-white hover:bg-emerald-700"
+                  >
+                    <Link href={dashboardPath}>
+                      Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    asChild
+                    size="lg"
+                    className="bg-emerald-600 text-white hover:bg-emerald-700"
+                  >
+                    <Link href="/onboarding">
+                      Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
                 <Button
                   asChild
                   variant="outline"
@@ -174,21 +196,40 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="relative h-[400px] lg:h-[500px] rounded-xl overflow-hidden">
+            <div className="relative h-[340px] lg:h-[460px] rounded-2xl overflow-hidden">
               <Image
                 src="/banner3.jpg"
-                alt="Doctor consultation"
+                alt="Healthcare for communities"
                 fill
                 priority
-                className="object-cover md:pt-14 rounded-xl"
+                className="object-cover rounded-2xl"
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Vision Section — NEW */}
-      <section className="py-16 bg-emerald-900/10 border-y border-emerald-900/20">
+      {/* Trust strip */}
+      <section className="border-y border-emerald-900/20 bg-emerald-900/10">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-emerald-900/20">
+            {[
+              { value: '₦1,200/mo', label: 'Starting plan price' },
+              { value: '< 5 mins', label: 'To register' },
+              { value: '₦5,000', label: 'Claim cap per episode' },
+              { value: 'Every Friday', label: 'Provider settlement' },
+            ].map((item) => (
+              <div key={item.label} className="py-6 px-4 text-center">
+                <p className="text-xl md:text-2xl font-bold text-emerald-400">{item.value}</p>
+                <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Vision Section */}
+      <section className="py-16 bg-emerald-900/10 border-b border-emerald-900/20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center space-y-4">
             <Badge
@@ -213,11 +254,18 @@ export default async function Home() {
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <Badge
+              variant="outline"
+              className="bg-emerald-900/30 border-emerald-700/30 px-4 py-1 text-emerald-400 text-sm font-medium mb-4"
+            >
               How It Works
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Simple. Affordable. Built for you.
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Our platform makes healthcare accessible with just a few clicks
+              From registration to treatment, every step is designed to be fast,
+              clear, and accessible.
             </p>
           </div>
 
@@ -315,7 +363,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Pricing Section with green medical styling */}
+      {/* Pricing Section */}
       <section id="pricing" className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -323,14 +371,14 @@ export default async function Home() {
               variant="outline"
               className="bg-emerald-900/30 border-emerald-700/30 px-4 py-1 text-emerald-400 text-sm font-medium mb-4"
             >
-              Affordable Healthcare
+              Membership Plans
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Consultation Packages
+              Choose Your Plan
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Choose the perfect consultation package that fits your healthcare
-              needs
+              Pay once, get covered for 1 or 3 months. All plans include access
+              to certified partner clinics and zero-paperwork claims.
             </p>
           </div>
 
@@ -343,7 +391,7 @@ export default async function Home() {
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-white flex items-center">
                   <Stethoscope className="h-5 w-5 mr-2 text-emerald-400" />
-                  How Our Credit System Works
+                  What You Need to Know Before You Subscribe
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -570,13 +618,25 @@ export default async function Home() {
                   healthcare the way it should be.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="bg-emerald-600 text-white hover:bg-emerald-700"
-                  >
-                    <Link href="/sign-up">Sign Up Now</Link>
-                  </Button>
+                  {dashboardPath ? (
+                    <Button
+                      asChild
+                      size="lg"
+                      className="bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
+                      <Link href={dashboardPath}>
+                        Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      asChild
+                      size="lg"
+                      className="bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
+                      <Link href="/sign-up">Sign Up Now</Link>
+                    </Button>
+                  )}
                   <Button
                     asChild
                     variant="outline"
@@ -584,13 +644,6 @@ export default async function Home() {
                     className="border-emerald-700/30 hover:bg-muted/80"
                   >
                     <Link href="#pricing">View Pricing</Link>
-                  </Button>
-                  <Button
-                    asChild
-                    size="lg"
-                    className="border-emerald-700/30 hover:bg-muted/80"
-                  >
-                    <Link href="/privacy">Privacy Policy</Link>
                   </Button>
                 </div>
               </div>

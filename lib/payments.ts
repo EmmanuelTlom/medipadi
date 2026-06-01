@@ -6,7 +6,6 @@ import { NextResponse } from 'next/server';
 import Paystack from 'paystack-sdk';
 import type { Transaction } from 'paystack-sdk/dist/transaction/interface';
 import { db } from './prisma';
-import { dvaResponse } from './dummy';
 
 // Type for Paystack dedicated account response
 type DedicatedAccountResponse = {
@@ -211,7 +210,8 @@ export async function createVirtualAccount (
   userId: string,
   email: string,
   firstName: string,
-  lastName: string
+  lastName: string,
+  phone?: string
 ) {
   try {
     const bank = ['wema-bank', 'titan-paystack'][Math.floor(Math.random() * 2)];
@@ -247,22 +247,45 @@ export async function createVirtualAccount (
     let paystackCustomerId = user.paystackCustomerId
 
     if (!paystackCustomerId) {
-      const { data: customer } = await paystack.customer.create({
-        email,
-        first_name: firstName,
-        last_name: lastName,
+      // Use raw fetch — the SDK strips unknown fields like `phone`
+      const customerRes = await fetch('https://api.paystack.co/customer', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          first_name: firstName,
+          last_name: lastName,
+          ...(phone ? { phone } : {}),
+        }),
       });
-      paystackCustomerId = customer.customer_code;
+      const customerData = await customerRes.json();
+      if (!customerData.status) {
+        throw new Error(customerData.message || 'Failed to create Paystack customer');
+      }
+      paystackCustomerId = customerData.data.customer_code;
 
-      // Update user with Paystack customer ID
       await db.user.update({
         where: { id: userId },
         data: { paystackCustomerId },
       });
+    } else if (phone) {
+      // Customer already exists — update their phone so Paystack accepts DVA creation.
+      // Previous attempts may have created the customer without a phone number.
+      await fetch(`https://api.paystack.co/customer/${paystackCustomerId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone }),
+      });
     }
 
-    // Create dedicated virtual account using raw API call
-    const virtualResponse = testing ? dvaResponse : (await paystack.dedicated.create({
+    // Always use the real Paystack DVA API — test keys also create real test accounts
+    const virtualResponse = (await paystack.dedicated.create({
       customer: paystackCustomerId,
       preferred_bank: bank,
       first_name: firstName,
