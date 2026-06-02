@@ -25,6 +25,7 @@ import { WelcomeDialog } from './_components/welcome-dialog';
 import { ProfileSettings } from './_components/profile-settings';
 import { checkUser } from '@/lib/checkUser';
 import { generateQRCode } from '@/lib/server.utils';
+import { redirect } from 'next/navigation';
 import { db } from '@/lib/prisma';
 import type { SubscriptionPlan } from '@prisma/client';
 
@@ -37,6 +38,7 @@ async function MemberDashboard() {
     checkUser(),
     db.subscriptionPlan.findMany({ where: { isActive: true }, orderBy: { price: 'asc' } }),
   ]);
+  if (!rawUser) redirect('/sign-in');
   const user = rawUser as UserWithPlan;
   const qrCode = user.membershipId ? await generateQRCode(user.membershipId) : null;
 

@@ -88,7 +88,7 @@ export async function sendSMSNotification (to: string, message: string) {
 /**
  * Generate QR code for membership ID
  */
-export async function generateQRCode (membershipId: string) {
+export async function generateQRCode (membershipId: string): Promise<string | null> {
     try {
         return await QRCode?.toDataURL(membershipId, {
             width: 200,
@@ -97,10 +97,10 @@ export async function generateQRCode (membershipId: string) {
                 dark: "#10b981",
                 light: "#ffffff",
             },
-        });
+        }) ?? null;
     } catch (error) {
         console.error("Failed to generate QR code:", error);
-        throw new Error("Failed to generate QR code");
+        return null;
     }
 }
 
