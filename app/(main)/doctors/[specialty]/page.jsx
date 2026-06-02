@@ -1,3 +1,17 @@
+export async function generateMetadata({ params }) {
+  const specialty = decodeURIComponent((await params).specialty);
+  return {
+    title: `${specialty} Doctors in Nigeria`,
+    description: `Find verified ${specialty} specialists on MediPadi. Book online or in-clinic appointments with trusted doctors near you in Nigeria.`,
+    alternates: { canonical: `https://medisure.africa/doctors/${encodeURIComponent(specialty)}` },
+    openGraph: {
+      title: `${specialty} Doctors in Nigeria | MediPadi`,
+      description: `Verified ${specialty} specialists available for consultations on MediPadi.`,
+      url: `https://medisure.africa/doctors/${encodeURIComponent(specialty)}`,
+    },
+  };
+}
+
 import { redirect } from "next/navigation";
 import { getDoctorsBySpecialty } from "@/actions/doctors-listing";
 import { DoctorCard } from "../components/doctor-card";

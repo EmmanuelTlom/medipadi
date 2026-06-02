@@ -1,3 +1,15 @@
+export const metadata = {
+  title: 'Health Plans & Pricing',
+  description:
+    'Simple, transparent pricing for MediPadi health plans. Monthly plans covering malaria, fever, infections and basic first aid. No hidden fees. Serving Kuje, Abuja, Nigeria.',
+  alternates: { canonical: 'https://medisure.africa/pricing' },
+  openGraph: {
+    title: 'Health Plans & Pricing | MediPadi',
+    description: 'Transparent pricing for affordable healthcare plans in Nigeria.',
+    url: 'https://medisure.africa/pricing',
+  },
+};
+
 import { ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';

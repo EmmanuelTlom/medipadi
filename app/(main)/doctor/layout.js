@@ -2,8 +2,8 @@ import { Stethoscope } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 
 export const metadata = {
-  title: "Doctor Dashboard - MediPadi",
-  description: "Manage your appointments and availability",
+  title: 'Doctor Dashboard',
+  robots: { index: false, follow: false },
 };
 
 export default async function DoctorDashboardLayout({ children }) {

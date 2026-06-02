@@ -19,8 +19,8 @@ import { redirect } from 'next/navigation';
 import { verifyAdmin } from '@/actions/admin';
 
 export const metadata = {
-  title: 'Admin Dashboard - MediPadi',
-  description: 'Manage doctors, patients, agents, and platform settings',
+  title: 'Admin Dashboard',
+  robots: { index: false, follow: false },
 };
 
 export default async function AdminLayout({ children }) {

@@ -1,3 +1,15 @@
+export const metadata = {
+  title: 'Find a Doctor',
+  description:
+    'Browse verified doctors across specialties on MediPadi. Book online or in-clinic consultations with trusted healthcare providers in Nigeria.',
+  alternates: { canonical: 'https://medisure.africa/doctors' },
+  openGraph: {
+    title: 'Find a Doctor | MediPadi',
+    description: 'Verified doctors across all specialties. Book appointments online.',
+    url: 'https://medisure.africa/doctors',
+  },
+};
+
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { SPECIALTIES } from "@/lib/specialities";

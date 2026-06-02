@@ -2,8 +2,8 @@ import { getCurrentUser } from "@/actions/onboarding";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Onboarding - MediPadi",
-  description: "Complete your profile to get started with MediPadi",
+  title: 'Onboarding',
+  robots: { index: false, follow: false },
 };
 export const dynamic = "force-dynamic";
 export default async function OnboardingLayout({ children }) {

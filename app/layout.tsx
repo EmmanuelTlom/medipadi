@@ -20,29 +20,43 @@ Money.setDefaultCurrency('NGN');
 // };
 
 export const metadata = {
-  metadataBase: new URL('https://medipadi.vercel.app/'),
-  title: 'MediPadi – Connecting you to quality healthcare, Anytime',
+  metadataBase: new URL('https://medisure.africa/'),
+  title: {
+    default: 'MediPadi – Affordable Health Plans by MediSure',
+    template: '%s | MediPadi',
+  },
   description:
-    'Connect with trusted healthcare facilities instantly. Book appointments, video consultations, and get quality healthcare anytime.',
+    'MediPadi by MediSure gives Nigerians access to quality, affordable healthcare. Prepaid health plans covering malaria, fever, infections and more. Serving Kuje, Abuja.',
+  icons: {
+    icon: [{ url: '/logo2.png', type: 'image/png', sizes: '500x500' }],
+    shortcut: '/favicon.ico',
+    apple: [{ url: '/logo2.png', sizes: '500x500', type: 'image/png' }],
+  },
   openGraph: {
-    title: 'MediPadi – Connecting you to quality healthcare, Anytime',
+    type: 'website',
+    locale: 'en_NG',
+    siteName: 'MediPadi by MediSure',
+    title: 'MediPadi – Affordable Health Plans by MediSure',
     description:
-      'Connect with trusted healthcare facilities instantly. Book appointments, video consultations, and get quality healthcare anytime.',
+      'Prepaid health plans covering malaria, fever, infections and basic first aid. Quality healthcare for every Nigerian.',
     images: [
       {
-        url: '/banner3.jpg', // path to your meta image
+        url: '/banner3.jpg',
         width: 1200,
         height: 630,
-        alt: 'Healthcare MediPadi app',
+        alt: 'MediPadi – Affordable Healthcare Plans by MediSure',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MediPadi – Book Doctors Online, Anytime',
+    title: 'MediPadi – Affordable Health Plans by MediSure',
     description:
-      'Book appointments and talk to trusted doctors online — anywhere, anytime.',
+      'Quality prepaid health plans for every Nigerian. Covering malaria, fever, infections and more.',
     images: ['/banner3.jpg'],
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
 };
 
@@ -56,9 +70,7 @@ export default function RootLayout({ children }) {
     >
       <ClientBase />
       <html lang="en" suppressHydrationWarning>
-        <head>
-          <link rel="icon" href="/logo.png" sizes="any" />
-        </head>
+        <head />
         <body className={`${inter.className}`}>
           <ThemeProvider
             attribute="class"

@@ -1,3 +1,16 @@
+export const metadata = {
+  title: 'Affordable Health Plans in Nigeria',
+  description:
+    'MediPadi by MediSure offers prepaid health plans covering malaria, fever, minor infections and basic first aid. Get quality healthcare in Nigeria from ₦500/month. Pilot in Kuje, Abuja.',
+  alternates: { canonical: 'https://medisure.africa/' },
+  openGraph: {
+    title: 'MediPadi – Affordable Health Plans in Nigeria | MediSure',
+    description:
+      'Prepaid health plans for malaria, fever, infections and more. Quality healthcare for every Nigerian.',
+    url: 'https://medisure.africa/',
+  },
+};
+
 import { ArrowRight, Stethoscope, ShieldCheck, Users, HeartPulse } from 'lucide-react';
 import FaqAccordion from '@/components/faq-accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

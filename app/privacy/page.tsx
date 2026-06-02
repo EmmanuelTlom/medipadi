@@ -1,3 +1,14 @@
+export const metadata = {
+  title: 'Privacy Policy',
+  description:
+    'Privacy Policy for MediPadi by Medisure Care Services Ltd. Learn how we collect, use, and protect your personal health data.',
+  alternates: { canonical: 'https://medisure.africa/privacy' },
+  openGraph: {
+    title: 'Privacy Policy | MediPadi',
+    url: 'https://medisure.africa/privacy',
+  },
+};
+
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShieldCheck } from 'lucide-react';
