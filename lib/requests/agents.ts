@@ -5,10 +5,15 @@ export interface Agent {
     id: string;
     firstName: string;
     lastName: string;
+    name?: string;
     email: string;
     phoneNumber?: string;
     walletBalance: number;
+    isActive: boolean;
+    suspendedAt?: string | null;
+    suspendedReason?: string | null;
     createdAt: string;
+    _count?: { registeredMembers: number };
 }
 
 export const getAgents = (params: Record<string, any> = {}) => (page?: number, limit?: number) => {
