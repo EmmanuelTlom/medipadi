@@ -1,4 +1,4 @@
-import { Calendar, Clock, Coins, DollarSign, TrendingUp } from 'lucide-react';
+import { Banknote, Calendar, Clock, Coins, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getDoctorEarnings, getDoctorPayouts } from '@/actions/payout';
@@ -122,7 +122,7 @@ export default async function DoctorDashboardPage() {
             value="earnings"
             className="flex-1 md:flex md:items-center md:justify-start md:px-4 md:py-3 w-full"
           >
-            <DollarSign className="h-4 w-4 mr-2 hidden md:inline" />
+            <Banknote className="h-4 w-4 mr-2 hidden md:inline" />
             <span>Earnings</span>
           </TabsTrigger>
           <TabsTrigger

@@ -11,6 +11,19 @@ export async function GET (request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        // Providers and admins may verify members; reject everyone else
+        const caller = await db.user.findUnique({
+            where: { clerkUserId: userId },
+            select: { role: true },
+        });
+
+        if (!caller || !['PROVIDER', 'ADMIN'].includes(caller.role)) {
+            return NextResponse.json(
+                { error: "Only providers can verify members" },
+                { status: 403 }
+            );
+        }
+
         const { searchParams } = new URL(request.url);
         const membershipId = searchParams.get("membershipId");
 

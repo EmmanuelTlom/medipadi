@@ -23,60 +23,43 @@ export async function GET (request: NextRequest) {
             );
         }
 
-        // Fetch all claims with member and provider details
+        const statusParam = request.nextUrl.searchParams.get("status");
+        const validStatuses = ['PENDING', 'APPROVED', 'REJECTED'];
+        const statusFilter = statusParam && validStatuses.includes(statusParam)
+            ? { status: statusParam as any }
+            : {};
+
         const [data, meta] = await db.claim.paginate({
-            where: request.nextUrl.searchParams.get("status") === 'PENDING'
-                ? { status: 'PENDING' }
-                : { status: { not: 'PENDING' } },
+            where: statusFilter,
             include: {
                 member: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                        membershipId: true,
-                    },
+                    select: { id: true, firstName: true, lastName: true, email: true, membershipId: true },
                 },
                 provider: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                    },
+                    select: { id: true, firstName: true, lastName: true, email: true },
                 },
             },
-            orderBy: [
-                { status: "asc" } as const,
-                { createdAt: "desc" } as const,
-            ],
+            orderBy: { createdAt: "desc" },
         }).withPages({
             includePageCount: true,
-            limit: request.nextUrl.searchParams.get("limit")
-                ? parseInt(request.nextUrl.searchParams.get("limit") as string, 10)
-                : 20,
-            page: request.nextUrl.searchParams.get("page")
-                ? parseInt(request.nextUrl.searchParams.get("page") as string, 10)
-                : 1,
+            limit: parseInt(request.nextUrl.searchParams.get("limit") ?? '20', 10),
+            page:  parseInt(request.nextUrl.searchParams.get("page")  ?? '1',  10),
         });
 
-        const pending = await db.claim.count({
-            where: { status: 'PENDING' }
-        })
+        const [pending, approved, rejected, pendingAmount, approvedAmount] = await Promise.all([
+            db.claim.count({ where: { status: 'PENDING' } }),
+            db.claim.count({ where: { status: 'APPROVED' } }),
+            db.claim.count({ where: { status: 'REJECTED' } }),
+            db.claim.aggregate({ where: { status: 'PENDING' },  _sum: { amount: true } }),
+            db.claim.aggregate({ where: { status: 'APPROVED' }, _sum: { amount: true } }),
+        ]);
 
-        const pendingAmount = (await db.claim.aggregate({
-            _sum: {
-                amount: true,
-            },
-            where: { status: 'PENDING' }
-        }))._sum.amount || 0;
-
-        const processed = await db.claim.count({
-            where: { status: { not: 'PENDING' } }
-        })
-
-        return NextResponse.json({ data, meta, pending, processed, pendingAmount });
+        return NextResponse.json({
+            data, meta,
+            pending, approved, rejected,
+            pendingAmount:  pendingAmount._sum.amount  ?? 0,
+            approvedAmount: approvedAmount._sum.amount ?? 0,
+        });
     } catch (error) {
         console.error("Error fetching all claims:", error);
         return NextResponse.json(

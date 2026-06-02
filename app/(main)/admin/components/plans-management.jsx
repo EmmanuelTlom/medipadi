@@ -1,9 +1,9 @@
 'use client';
 
 import {
+  Banknote,
   Calendar,
   CreditCard,
-  DollarSign,
   Edit,
   Plus,
   Trash2,
@@ -330,7 +330,7 @@ export function AdminPlansPage() {
 
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-sm">
-                    <DollarSign className="h-4 w-4 mr-2 text-emerald-400" />
+                    <Banknote className="h-4 w-4 mr-2 text-emerald-400" />
                     <span className="font-semibold text-emerald-400">
                       ₦{plan.price.toLocaleString()}
                     </span>

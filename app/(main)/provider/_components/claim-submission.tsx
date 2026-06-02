@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { DollarSign, FileText, Search } from 'lucide-react';
+import { Banknote, FileText, Search } from 'lucide-react';
 import { useForm, useRequest } from 'alova/client';
 
 import { BarLoader } from 'react-spinners';

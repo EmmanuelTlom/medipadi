@@ -154,7 +154,7 @@ export function AgentMembersList() {
           {data.length > 0 && (
             <div className="flex items-center justify-between pt-4 border-t mt-4">
               <div className="text-sm text-muted-foreground">
-                Page {page} of {pageSize || 1}
+                Page {page} of {Math.ceil(total / pageSize) || 1}
               </div>
               <div className="flex gap-2">
                 <Button

@@ -25,11 +25,13 @@ export async function GET (request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const providerId = searchParams.get("providerId");
+        const statusParam = searchParams.get("status");
+        const validStatuses = ['PENDING', 'APPROVED', 'REJECTED'];
 
-        // Fetch all claims for this provider
         const [data, meta] = await db.claim.paginate({
             where: {
                 providerId: providerId || provider.id,
+                ...(statusParam && validStatuses.includes(statusParam) ? { status: statusParam as any } : {}),
             },
             include: {
                 member: {
@@ -55,31 +57,20 @@ export async function GET (request: NextRequest) {
         });
 
 
-        const pending = await db.claim.count({
-            where: {
-                status: 'PENDING',
-                providerId: providerId || provider.id
-            }
-        })
+        const pid = providerId || provider.id;
 
-        const processed = await db.claim.count({
-            where: {
-                status: { not: 'PENDING' },
-                providerId: providerId || provider.id
-            }
-        })
+        const [pending, approved, rejected] = await Promise.all([
+            db.claim.count({ where: { status: 'PENDING',  providerId: pid } }),
+            db.claim.count({ where: { status: 'APPROVED', providerId: pid } }),
+            db.claim.count({ where: { status: 'REJECTED', providerId: pid } }),
+        ]);
 
         const approvedAmount = (await db.claim.aggregate({
-            where: {
-                providerId: providerId || provider.id,
-                status: 'APPROVED'
-            },
-            _sum: {
-                amount: true
-            }
+            where: { providerId: pid, status: 'APPROVED' },
+            _sum: { amount: true },
         }))._sum.amount || 0;
 
-        return NextResponse.json({ data, meta, pending, processed, approvedAmount });
+        return NextResponse.json({ data, meta, pending, approved, rejected, processed: approved + rejected, approvedAmount });
     } catch (error) {
         console.error("Error fetching claims:", error);
         return NextResponse.json(

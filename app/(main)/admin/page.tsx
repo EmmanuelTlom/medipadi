@@ -5,6 +5,7 @@ import { DashboardStats } from './components/dashboard-stats';
 import { MembersList } from './components/members-list';
 import { PendingDoctors } from './components/pending-doctors';
 import { PendingPayouts } from './components/pending-payouts';
+import { ProvidersList } from './components/providers-list';
 import { TabsContent } from '@/components/ui/tabs';
 import { VerifiedDoctors } from './components/verified-doctors';
 import { getDashboardStats } from '@/actions/members';
@@ -36,6 +37,10 @@ export default async function AdminPage() {
 
       <TabsContent value="agents" className="border-none p-0">
         <AgentsList />
+      </TabsContent>
+
+      <TabsContent value="providers" className="border-none p-0">
+        <ProvidersList />
       </TabsContent>
 
       <TabsContent value="reports" className="border-none p-0">

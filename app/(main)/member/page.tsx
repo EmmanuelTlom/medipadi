@@ -124,50 +124,48 @@ async function MemberDashboard() {
       )}
 
       {/* Stats strip */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <Card className="border-emerald-900/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-emerald-900/20 p-2 rounded-lg shrink-0">
-                <Sparkles className="h-4 w-4 text-emerald-400" />
+          <CardContent className="p-2 sm:p-4">
+            <div className="flex flex-col items-center gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <div className="bg-emerald-900/20 p-1.5 sm:p-2 rounded-lg shrink-0">
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
               </div>
-              <div className="min-w-0">
-                <p className="text-2xl font-bold text-white">{user.credits || 0}</p>
-                <p className="text-xs text-muted-foreground truncate">Credits</p>
+              <div className="text-center sm:text-left min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-white leading-tight">{user.credits || 0}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Credits</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="border-emerald-900/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-emerald-900/20 p-2 rounded-lg shrink-0">
-                <Activity className="h-4 w-4 text-emerald-400" />
+          <CardContent className="p-2 sm:p-4">
+            <div className="flex flex-col items-center gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <div className="bg-emerald-900/20 p-1.5 sm:p-2 rounded-lg shrink-0">
+                <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
               </div>
-              <div className="min-w-0">
-                <p
-                  className={`text-lg font-bold truncate ${
-                    hasActivePlan ? 'text-white' : needsRenewal && user.membershipId ? 'text-red-400' : 'text-muted-foreground'
-                  }`}
-                >
+              <div className="text-center sm:text-left min-w-0">
+                <p className={`text-base sm:text-lg font-bold leading-tight ${
+                  hasActivePlan ? 'text-white' : needsRenewal && user.membershipId ? 'text-red-400' : 'text-muted-foreground'
+                }`}>
                   {hasActivePlan ? 'Active' : user.membershipId ? 'Expired' : 'None'}
                 </p>
-                <p className="text-xs text-muted-foreground truncate">Plan Status</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Plan Status</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="border-emerald-900/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-emerald-900/20 p-2 rounded-lg shrink-0">
-                <Calendar className="h-4 w-4 text-emerald-400" />
+          <CardContent className="p-2 sm:p-4">
+            <div className="flex flex-col items-center gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <div className="bg-emerald-900/20 p-1.5 sm:p-2 rounded-lg shrink-0">
+                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
               </div>
-              <div className="min-w-0">
-                <p className="text-2xl font-bold text-white">
+              <div className="text-center sm:text-left min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-white leading-tight">
                   {daysSinceAllocation !== null ? `${daysSinceAllocation}d` : '—'}
                 </p>
-                <p className="text-xs text-muted-foreground truncate">Since top-up</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Top-up</p>
               </div>
             </div>
           </CardContent>

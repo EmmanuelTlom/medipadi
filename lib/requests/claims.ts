@@ -2,57 +2,44 @@ import { Claim } from "@prisma/client";
 import { PageNumberPaginationMeta } from "prisma-extension-pagination";
 import { alova } from "@/lib/alova";
 
-export const getPendingClaims = (params: Record<string, any> = {}) => (
-    page?: number,
-    limit?: number
-) => {
-    return alova.Get<{
-        data: (Claim & Record<string, any>)[];
-        meta: PageNumberPaginationMeta<true>
-        pending: number;
-        processed: number;
-        pendingAmount: number;
-    }>('/api/admin/claims', {
-        hitSource: ['submit-claim'],
-        params: { page, limit, status: 'PENDING', ...params }
-    })
-}
+type ClaimStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
-export const getProcessedClaims = (params: Record<string, any> = {}) => (
-    page?: number,
-    limit?: number
-) => {
-    return alova.Get<{
-        data: (Claim & Record<string, any>)[];
-        meta: PageNumberPaginationMeta<true>
-        pending: number;
-        processed: number;
-        pendingAmount: number;
-    }>('/api/admin/claims', {
-        hitSource: ['submit-claim'],
-        params: {
-            page, limit, status: 'PROCESSED', ...params,
-        }
-    })
-}
+type AdminClaimsResponse = {
+    data: (Claim & Record<string, any>)[];
+    meta: PageNumberPaginationMeta<true>;
+    pending: number;
+    approved: number;
+    rejected: number;
+    pendingAmount: number;
+    approvedAmount: number;
+};
 
-export const getProviderClaims = (providerId: string, params: Record<string, any> = {}) => (
+type ProviderClaimsResponse = {
+    data: (Claim & Record<string, any>)[];
+    meta: PageNumberPaginationMeta<true>;
+    pending: number;
+    processed: number;
+    approvedAmount: number;
+};
+
+export const getAdminClaims = (status: ClaimStatus, params: Record<string, any> = {}) => (
     page?: number,
     limit?: number
-) => {
-    return alova.Get<{
-        data: (Claim & Record<string, any>)[];
-        meta: PageNumberPaginationMeta<true>
-        pending: number;
-        processed: number;
-        approvedAmount: number;
-    }>('/api/provider/claims', {
+) => alova.Get<AdminClaimsResponse>('/api/admin/claims', {
+    hitSource: ['submit-claim', 'process-claim'],
+    params: { page, limit, status, ...params },
+});
+
+// Legacy aliases kept for any remaining consumers
+export const getPendingClaims  = (params?: Record<string, any>) => getAdminClaims('PENDING',  params ?? {});
+export const getProcessedClaims = (params?: Record<string, any>) => getAdminClaims('APPROVED', params ?? {});
+
+export const getProviderClaims = (
+    providerId: string,
+    status?: ClaimStatus,
+    params: Record<string, any> = {}
+) => (page?: number, limit?: number) =>
+    alova.Get<ProviderClaimsResponse>('/api/provider/claims', {
         hitSource: ['submit-claim'],
-        params: {
-            providerId,
-            page,
-            limit,
-            ...params
-        },
-    })
-}
+        params: { providerId, page, limit, ...(status ? { status } : {}), ...params },
+    });

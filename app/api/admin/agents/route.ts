@@ -24,12 +24,22 @@ export async function GET (request: NextRequest) {
         }
 
         const [data, meta] = await db.user.paginate({
-            where: {
-                role: 'AGENT',
+            where: { role: 'AGENT' },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                name: true,
+                email: true,
+                phoneNumber: true,
+                walletBalance: true,
+                isActive: true,
+                suspendedAt: true,
+                suspendedReason: true,
+                createdAt: true,
+                _count: { select: { registeredMembers: true } },
             },
-            orderBy: {
-                createdAt: 'desc',
-            },
+            orderBy: { createdAt: 'desc' },
         }).withPages({
             includePageCount: true,
             limit: request.nextUrl.searchParams.get("limit")

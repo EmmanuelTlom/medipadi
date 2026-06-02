@@ -3,6 +3,106 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import crypto from "crypto";
+
+/**
+ * Creates a provider account (Clerk + DB).
+ */
+export async function createProvider({ firstName, lastName, email, phone, facilityName }) {
+  const isAdmin = await verifyAdmin();
+  if (!isAdmin) throw new Error("Unauthorized");
+
+  const existing = await db.user.findUnique({ where: { email } });
+  if (existing) throw new Error("An account with this email already exists");
+
+  const password = crypto.randomBytes(8).toString("base64").slice(0, 12) + "Pp1!";
+
+  const { createClerkUser } = await import("@/lib/server.utils");
+  const clerkUser = await createClerkUser({
+    emailAddress: [email],
+    password,
+    firstName,
+    lastName,
+    publicMetadata: { role: "PROVIDER" },
+  });
+
+  await db.user.create({
+    data: {
+      clerkUserId: clerkUser.id,
+      email,
+      firstName,
+      lastName,
+      name: facilityName || `${firstName} ${lastName}`,
+      role: "PROVIDER",
+      isActive: true,
+    },
+  });
+
+  revalidatePath("/admin");
+  return { success: true, email, password };
+}
+
+/**
+ * Suspend or reactivate an agent or provider account.
+ */
+export async function toggleUserActive(userId, isActive, reason) {
+  const isAdmin = await verifyAdmin();
+  if (!isAdmin) throw new Error("Unauthorized");
+
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error("User not found");
+  if (!["AGENT", "PROVIDER"].includes(user.role)) throw new Error("Can only suspend agents or providers");
+
+  await db.user.update({
+    where: { id: userId },
+    data: {
+      isActive,
+      suspendedAt: isActive ? null : new Date(),
+      suspendedReason: isActive ? null : (reason || "Suspended by admin"),
+    },
+  });
+
+  revalidatePath("/admin");
+  return { success: true };
+}
+
+/**
+ * Creates a test agent account (Clerk + DB) for development/testing.
+ */
+export async function createTestAgent({ firstName, lastName, email, phone }) {
+  const isAdmin = await verifyAdmin();
+  if (!isAdmin) throw new Error("Unauthorized");
+
+  // Check if email already exists in DB
+  const existing = await db.user.findUnique({ where: { email } });
+  if (existing) throw new Error("An account with this email already exists");
+
+  const password = crypto.randomBytes(8).toString("base64").slice(0, 12) + "Aa1!";
+
+  const { createClerkUser } = await import("@/lib/server.utils");
+  const clerkUser = await createClerkUser({
+    emailAddress: [email],
+    password,
+    firstName,
+    lastName,
+    publicMetadata: { role: "AGENT" },
+  });
+
+  await db.user.create({
+    data: {
+      clerkUserId: clerkUser.id,
+      email,
+      firstName,
+      lastName,
+      name: `${firstName} ${lastName}`,
+      role: "AGENT",
+      walletBalance: 5000, // starter balance for testing
+    },
+  });
+
+  revalidatePath("/admin");
+  return { success: true, email, password };
+}
 
 /**
  * Verifies if current user has admin role
@@ -207,7 +307,16 @@ export async function approvePayout (formData) {
         status: "PROCESSING",
       },
       include: {
-        doctor: true,
+        doctor: {
+          select: {
+            id: true,
+            credits: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            paystackRecipientCode: true,
+          },
+        },
       },
     });
 
@@ -257,6 +366,44 @@ export async function approvePayout (formData) {
     });
 
     revalidatePath("/admin");
+
+    // Attempt automatic Paystack transfer — non-fatal, existing flow always completes first
+    if (payout.doctor.paystackRecipientCode && payout.netAmount > 0) {
+      try {
+        const transferRes = await fetch('https://api.paystack.co/transfer', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            source: 'balance',
+            amount: Math.round(payout.netAmount * 100), // kobo
+            recipient: payout.doctor.paystackRecipientCode,
+            reason: `Claim payout #${payoutId.substring(0, 8)}`,
+          }),
+        });
+        const transferData = await transferRes.json();
+        if (transferData.status) {
+          await db.payout.update({
+            where: { id: payoutId },
+            data: { transferReference: transferData.data?.transfer_code ?? null },
+          });
+        } else {
+          await db.payout.update({
+            where: { id: payoutId },
+            data: { transferError: transferData.message || 'Transfer failed' },
+          });
+        }
+      } catch (transferErr) {
+        console.error('Auto-transfer failed (payout already marked processed):', transferErr);
+        await db.payout.update({
+          where: { id: payoutId },
+          data: { transferError: transferErr.message },
+        }).catch(() => {}); // fire and forget
+      }
+    }
+
     return { success: true };
   } catch (error) {
     console.error("Failed to approve payout:", error);

@@ -155,7 +155,7 @@ export async function POST (request: NextRequest) {
                 `Plan: ${subscriptionPlan.name}\n` +
                 `Credits: ${subscriptionPlan.credits}\n` +
                 `Valid Until: ${subscriptionEnd.toLocaleDateString()}\n\n` +
-                `Please login at ${process.env.NEXT_PUBLIC_APP_URL || 'https://medipadi.com'} and change your password.\n\n` +
+                `Please login at ${process.env.NEXT_PUBLIC_APP_URL || 'https://medisure.africa'} and change your password.\n\n` +
                 `Best regards,\nMediPadi Team`
             );
         } catch (emailError) {
@@ -179,7 +179,8 @@ export async function POST (request: NextRequest) {
             member: {
                 id: newMember.id,
                 email: newMember.email,
-                name: `${newMember.firstName} ${newMember.lastName}`,
+                firstName: newMember.firstName,
+                lastName: newMember.lastName,
                 membershipId: newMember.membershipId,
                 credits: newMember.credits,
                 subscriptionEnd: newMember.subscriptionEnd,

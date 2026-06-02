@@ -3,10 +3,10 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertCircle,
+  Banknote,
   Check,
   ChevronLeft,
   ChevronRight,
-  DollarSign,
   Loader2,
   Mail,
   Stethoscope,
@@ -297,7 +297,7 @@ export function PendingPayouts() {
               {/* Payout Information */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-emerald-400" />
+                  <Banknote className="h-5 w-5 text-emerald-400" />
                   <h3 className="text-white font-medium">Payout Details</h3>
                 </div>
                 <div className="bg-muted/20 p-4 rounded-lg border border-emerald-900/20 space-y-3">

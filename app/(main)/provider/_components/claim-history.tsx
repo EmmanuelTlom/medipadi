@@ -1,271 +1,208 @@
 'use client';
 
 import {
-  Calendar,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  DollarSign,
-  FileText,
-  XCircle,
+  Banknote, CheckCircle, ChevronLeft, ChevronRight,
+  Clock, FileText, XCircle,
 } from 'lucide-react';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from '@/components/ui/card';
-import { ClaimStatus, User } from '@prisma/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getProviderClaims } from '@/lib/requests/claims';
 
 import { Badge } from '@/components/ui/badge';
-import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
+import { ClaimStatus, User } from '@prisma/client';
 import { Money } from '@toneflix/money';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getProviderClaims } from '@/lib/requests/claims';
 import { usePagination } from 'alova/client';
 import { useState } from 'react';
 
-export function ClaimHistory({ user }: { user: User }) {
-  const [meta, setMeta] = useState({
-    pending: 0,
-    processed: 0,
-    approvedAmount: 0,
-  });
+/* ─── Helpers ────────────────────────────────────────────────── */
 
-  const {
-    data: claims,
-    loading,
-    page,
-    update,
-    pageCount,
-    isLastPage,
-  } = usePagination(getProviderClaims(user.id), {
-    immediate: true,
-    total: (response) => response.meta.totalCount,
-    initialData: { data: [], meta: { totalCount: 0 } },
-    initialPageSize: 15,
-  }).onSuccess(({ data }) => {
-    setMeta({
-      pending: data.pending,
-      processed: data.processed,
-      approvedAmount: data.approvedAmount,
-    });
-  });
+const statusCfg = {
+  PENDING:  { cls: 'bg-amber-500/10 text-amber-400 border-amber-500/30',     icon: <Clock className="h-3 w-3" />,        cardBorder: 'border-amber-900/20 bg-amber-950/5' },
+  APPROVED: { cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', icon: <CheckCircle className="h-3 w-3" />, cardBorder: 'border-emerald-900/10' },
+  REJECTED: { cls: 'bg-red-500/10 text-red-400 border-red-500/30',           icon: <XCircle className="h-3 w-3" />,       cardBorder: 'border-red-900/10' },
+};
 
-  const getStatusIcon = (status: ClaimStatus) => {
-    switch (status) {
-      case 'APPROVED':
-        return <CheckCircle className="h-4 w-4 text-green-400" />;
-      case 'REJECTED':
-        return <XCircle className="h-4 w-4 text-red-400" />;
-      default:
-        return <Clock className="h-4 w-4 text-yellow-400" />;
-    }
-  };
+function StatusBadge({ status }: { status: ClaimStatus }) {
+  const { cls, icon } = statusCfg[status] ?? statusCfg.PENDING;
+  return (
+    <Badge variant="outline" className={`${cls} flex items-center gap-1 text-xs`}>
+      {icon}<span className="capitalize">{status.toLowerCase()}</span>
+    </Badge>
+  );
+}
 
-  const getStatusBadge = (status: ClaimStatus) => {
-    const variants = {
-      PENDING: 'bg-yellow-950/20 text-yellow-400 border-yellow-900/30',
-      APPROVED: 'bg-green-950/20 text-green-400 border-green-900/30',
-      REJECTED: 'bg-red-950/20 text-red-400 border-red-900/30',
-    };
+const fmt = (d: string | Date) =>
+  new Date(d).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' });
 
+/* ─── Per-tab list ───────────────────────────────────────────── */
+
+function ClaimList({ userId, status }: { userId: string; status: ClaimStatus }) {
+  const { loading, data: claims, page, pageCount, isLastPage, update } = usePagination(
+    getProviderClaims(userId, status),
+    {
+      immediate: true,
+      initialPageSize: 15,
+      initialData: { data: [], meta: { totalCount: 0 } },
+      total: (r: any) => r.meta.totalCount,
+    },
+  );
+
+  const borderClass = statusCfg[status].cardBorder;
+
+  if (loading) {
     return (
-      <Badge variant="outline" className={variants[status]}>
-        {getStatusIcon(status)}
-        <span className="ml-1">{status}</span>
-      </Badge>
+      <div className="space-y-3">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="rounded-xl border border-muted/10 p-4 space-y-3">
+            <div className="flex justify-between"><Skeleton className="h-4 w-1/4" /><Skeleton className="h-5 w-20" /></div>
+            <div className="grid grid-cols-4 gap-3">{[...Array(4)].map((_, j) => <Skeleton key={j} className="h-10" />)}</div>
+          </div>
+        ))}
+      </div>
     );
-  };
+  }
 
-  const formatDate = (dateString: string | Date) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
+  if (!claims || claims.length === 0) {
+    return (
+      <div className="text-center py-14">
+        <div className="mx-auto w-14 h-14 rounded-full bg-muted/10 flex items-center justify-center mb-3">
+          <FileText className="h-7 w-7 text-muted-foreground/40" />
+        </div>
+        <p className="text-muted-foreground text-sm">No {status.toLowerCase()} claims</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-blue-900/20">
-          <CardContent className="pt-6">
+    <div className="space-y-3">
+      {claims.map((claim: any) => (
+        <div key={claim.id} className={`rounded-xl border p-4 ${borderClass}`}>
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Claims</p>
-                <p className="text-2xl font-bold text-white">
-                  {meta.pending + meta.processed}
-                </p>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-white text-sm">#{claim.id.substring(0, 8)}</span>
+                <StatusBadge status={claim.status} />
               </div>
-              <FileText className="h-8 w-8 text-blue-400" />
+              <span className="text-xs text-muted-foreground">{fmt(claim.createdAt)}</span>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card className="border-yellow-900/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-yellow-400">
-                  {meta.pending}
-                </p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-400" />
-            </div>
-          </CardContent>
-        </Card>
+            {claim.description && (
+              <p className="text-sm text-muted-foreground line-clamp-1">{claim.description}</p>
+            )}
 
-        <Card className="border-green-900/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Approved Amount</p>
-                <p className="text-2xl font-bold text-green-400">
-                  {Money.format(meta.approvedAmount)}
-                </p>
-              </div>
-              <DollarSign className="h-8 w-8 text-green-400" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+              {[
+                { label: 'Member',       value: `${claim.member?.firstName ?? ''} ${claim.member?.lastName ?? ''}`.trim() || '—' },
+                { label: 'Amount',       value: Money.format(claim.amount), highlight: true },
+                { label: 'Service Date', value: fmt(claim.serviceDate || claim.createdAt) },
+                { label: 'Submitted',    value: fmt(claim.createdAt) },
+              ].map(({ label, value, highlight }) => (
+                <div key={label} className="bg-muted/10 rounded-lg p-2.5">
+                  <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+                  <p className={`font-medium truncate text-sm ${highlight ? 'text-emerald-400' : 'text-white'}`}>{value}</p>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+
+            {claim.adminNotes && (
+              <div className="bg-blue-950/20 border border-blue-900/30 rounded-lg px-3 py-2 text-xs text-blue-300">
+                <span className="font-medium text-blue-400">Admin note:</span> {claim.adminNotes}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+
+      <div className="flex items-center justify-between pt-4 border-t border-muted/20">
+        <p className="text-sm text-muted-foreground">Page {page || 1} of {pageCount || 1}</p>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => update({ page: page - 1 })} disabled={loading || page === 1}>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => update({ page: page + 1 })} disabled={loading || isLastPage}>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Main component ─────────────────────────────────────────── */
+
+export function ClaimHistory({ user }: { user: User }) {
+  const [meta, setMeta] = useState({ pending: 0, approved: 0, rejected: 0, approvedAmount: 0 });
+
+  usePagination(getProviderClaims(user.id), {
+    immediate: true,
+    initialPageSize: 1,
+    initialData: { data: [], meta: { totalCount: 0 } },
+    total: (r: any) => r.meta.totalCount,
+  }).onSuccess(({ data }: any) => {
+    setMeta({
+      pending: data.pending ?? 0,
+      approved: data.approved ?? 0,
+      rejected: data.rejected ?? 0,
+      approvedAmount: data.approvedAmount ?? 0,
+    });
+  });
+
+  return (
+    <div className="space-y-5">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Total Claims',    value: meta.pending + meta.approved + meta.rejected, sub: 'all time',               color: 'blue',    icon: <FileText className="h-4 w-4" /> },
+          { label: 'Pending',         value: meta.pending,                                 sub: 'awaiting review',        color: 'amber',   icon: <Clock className="h-4 w-4" /> },
+          { label: 'Approved',        value: meta.approved,                                sub: Money.format(meta.approvedAmount), color: 'emerald', icon: <CheckCircle className="h-4 w-4" /> },
+          { label: 'Rejected',        value: meta.rejected,                                sub: 'not payable',            color: 'red',     icon: <XCircle className="h-4 w-4" /> },
+        ].map(({ label, value, sub, color, icon }) => (
+          <Card key={label} className={`border-${color}-900/20 bg-${color}-950/5`}>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className={`text-2xl font-bold text-${color}-400 mt-0.5`}>{value}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
+                </div>
+                <span className={`text-${color}-400`}>{icon}</span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Claims List */}
-      <Card className="border-blue-900/20">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-white">
-            Claim History
+      {/* Tabbed list */}
+      <Card className="border-muted/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-white flex items-center gap-2">
+            <FileText className="h-4 w-4 text-emerald-400" /> Claim History
           </CardTitle>
-          <CardDescription>
-            View all your submitted claims and their status
-          </CardDescription>
+          <CardDescription>All your submitted claims and their status</CardDescription>
         </CardHeader>
         <CardContent>
-          {loading && (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <Card key={i} className="bg-muted/5 border-muted/10">
-                  <CardContent className="pt-4 pb-4">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-5 w-1/4" />
-                      <Skeleton className="h-6 w-20" />
-                      <div className="flex-1" />
-                    </div>
-                    <Skeleton className="h-3 w-full mt-2" />
-                  </CardContent>
-                </Card>
+          <Tabs defaultValue="PENDING">
+            <TabsList className="mb-4 h-auto p-1 bg-muted/20 border border-muted/30 rounded-lg w-full sm:w-auto flex">
+              {([
+                { value: 'PENDING',  label: 'Pending',  count: meta.pending,  color: 'data-[state=active]:text-amber-400' },
+                { value: 'APPROVED', label: 'Approved', count: meta.approved, color: 'data-[state=active]:text-emerald-400' },
+                { value: 'REJECTED', label: 'Rejected', count: meta.rejected, color: 'data-[state=active]:text-red-400' },
+              ] as const).map(({ value, label, count, color }) => (
+                <TabsTrigger key={value} value={value}
+                  className={`flex-1 sm:flex-none flex items-center gap-2 px-4 py-2 text-sm rounded-md ${color}`}>
+                  {label}
+                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-4">{count}</Badge>
+                </TabsTrigger>
               ))}
-            </div>
-          )}
-
-          {!loading && (!claims || claims.length === 0) && (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">No claims submitted yet</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Submit your first claim to get started
-              </p>
-            </div>
-          )}
-
-          {!loading && claims && claims.length > 0 && (
-            <div className="space-y-4">
-              {claims.map((claim) => (
-                <Card key={claim.id} className="bg-muted/5 border-muted/10">
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-semibold text-white">
-                              Claim #{claim.id.substring(0, 8)}
-                            </h4>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {claim.description}
-                            </p>
-                          </div>
-                          {getStatusBadge(claim.status)}
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Member</p>
-                            <p className="font-medium text-white">
-                              {claim.member?.firstName} {claim.member?.lastName}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Amount</p>
-                            <p className="font-semibold text-emerald-400">
-                              {Money.format(claim.amount)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">
-                              Service Date
-                            </p>
-                            <p className="font-medium text-white">
-                              {formatDate(claim.serviceDate || claim.createdAt)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Submitted</p>
-                            <p className="font-medium text-white">
-                              {formatDate(claim.createdAt)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {claim.adminNotes && (
-                          <div className="mt-3 bg-blue-950/20 border border-blue-900/30 rounded-md p-3">
-                            <p className="text-xs text-blue-400 font-semibold mb-1">
-                              Admin Notes:
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {claim.adminNotes}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {/* Pagination Controls */}
-              <div className="flex items-center justify-between pt-4 border-t mt-4">
-                <div className="text-sm text-muted-foreground">
-                  Page {page || 1} of {pageCount || 1}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => update({ page: page - 1 })}
-                    disabled={loading || page === 1}
-                  >
-                    <ChevronLeft className="w-4 h-4 mr-1" />
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => update({ page: page + 1 })}
-                    disabled={loading || isLastPage}
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+            </TabsList>
+            <TabsContent value="PENDING"  className="mt-0"><ClaimList userId={user.id} status="PENDING" /></TabsContent>
+            <TabsContent value="APPROVED" className="mt-0"><ClaimList userId={user.id} status="APPROVED" /></TabsContent>
+            <TabsContent value="REJECTED" className="mt-0"><ClaimList userId={user.id} status="REJECTED" /></TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

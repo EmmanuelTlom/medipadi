@@ -105,13 +105,12 @@ export function MemberRegistration({
     toast.error(error.message);
   });
 
-  onSuccess(({ data }) => {
+  onSuccess(({ data }: { data: any }) => {
+    const member = data.member;
     toast.success(
-      `Successfully registered ${formData.firstName} ${formData.lastName}!`,
+      `Successfully registered ${member.firstName} ${member.lastName}!`,
     );
-
-    // Show success dialog instead of reloading
-    setSuccessData(data.data);
+    setSuccessData(member);
     send();
   });
 
@@ -380,7 +379,7 @@ export function MemberRegistration({
               <li>
                 Member will have immediate access to all platform features
               </li>
-              <li>You'll earn commission on this registration</li>
+              <li>Member will have a 14-day waiting period before claims are active</li>
             </ul>
           </div>
         </CardContent>

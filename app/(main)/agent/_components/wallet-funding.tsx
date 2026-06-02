@@ -3,9 +3,9 @@
 import {
   ArrowDownLeft,
   ArrowUpRight,
+  Banknote,
   Calendar,
   CreditCard,
-  DollarSign,
   Wallet,
 } from 'lucide-react';
 import {

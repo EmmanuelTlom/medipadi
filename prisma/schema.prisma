@@ -37,6 +37,16 @@ model User {
   paystackCustomerId      String?              @unique
   virtualAccountActive    Boolean              @default(false)
   virtualAccountCreatedAt DateTime?
+  // Provider bank payout fields
+  bankAccountNumber       String?
+  bankAccountName         String?
+  bankCode                String?
+  bankName                String?
+  paystackRecipientCode   String?
+  // Account lifecycle
+  isActive                Boolean              @default(true)
+  suspendedAt             DateTime?
+  suspendedReason         String?
   doctorAppointments      Appointment[]        @relation("DoctorAppointments")
   patientAppointments     Appointment[]        @relation("PatientAppointments")
   transactions            CreditTransaction[]
@@ -164,11 +174,13 @@ model Payout {
   netAmount   Float
   paypalEmail String
   status      PayoutStatus @default(PROCESSING)
-  claimId     String? // Optional link to related claim
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  processedAt DateTime?
-  processedBy String?
+  claimId           String? // Optional link to related claim
+  transferReference String? // Paystack transfer reference (set on auto-disbursement)
+  transferError     String? // Error message if Paystack transfer failed
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  processedAt       DateTime?
+  processedBy       String?
   doctor      User         @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@index([status, createdAt])
