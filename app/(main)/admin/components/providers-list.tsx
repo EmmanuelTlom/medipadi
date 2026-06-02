@@ -20,14 +20,11 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Money } from '@toneflix/money';
-import { alova } from '@/lib/alova';
 import { format } from 'date-fns';
+import { getProviders } from '@/lib/requests/providers';
 import { toast } from 'sonner';
 import { usePagination } from 'alova/client';
 import { useState } from 'react';
-
-const getProviders = () => (page?: number, limit?: number) =>
-    alova.Get<{ data: any[]; meta: any }>('/api/admin/providers', { params: { page, limit } });
 
 export function ProvidersList() {
   const { loading, update, data, page, total, pageCount, isLastPage, refresh } =
