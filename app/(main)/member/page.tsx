@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import VirtualAccountCard from '@/components/virtual-account-card';
+import VirtualAccountBanner from '@/components/virtual-account-banner';
 import { WelcomeDialog } from './_components/welcome-dialog';
 import { ProfileSettings } from './_components/profile-settings';
 import { checkUser } from '@/lib/checkUser';
@@ -109,6 +110,16 @@ async function MemberDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Virtual account quick-copy — only shown when account exists */}
+      {user.virtualAccountActive && user.virtualAccountNumber && (
+        <VirtualAccountBanner
+          accountNumber={user.virtualAccountNumber}
+          bankName={user.virtualAccountBank}
+          accountName={user.virtualAccountName}
+          walletBalance={user.walletBalance ?? 0}
+        />
+      )}
 
       {/* Stats strip */}
       <div className="grid grid-cols-3 gap-3">

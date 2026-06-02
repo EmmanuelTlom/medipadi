@@ -45,10 +45,12 @@ export async function POST(request: NextRequest) {
           })
         }
 
-        // For dedicated_nuban charges the recipient account is in dedicated_account,
-        // not authorization (which holds the sender's bank details).
+        // For dedicated_nuban charges the recipient NUBAN is in dedicated_account.
+        // In the authorization object, account_number is the sender's masked number;
+        // receiver_bank_account_number is the dedicated NUBAN that received the funds.
         const accountNumber =
           data.dedicated_account?.account_number ||
+          data.authorization?.receiver_bank_account_number ||
           data.authorization?.account_number
         const reference = data.reference
         const amount = data.amount
