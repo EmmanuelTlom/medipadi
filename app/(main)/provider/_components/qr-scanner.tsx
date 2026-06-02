@@ -153,7 +153,7 @@ export function QRScanner({
               <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
                 <Scanner
                   onScan={([result]) => verifyMember(result.rawValue)}
-                  onError={(error: Error) => toast.error(error.message)}
+                  onError={(error) => toast.error(error.message ?? String(error))}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="border-2 border-purple-400 w-64 h-64 rounded-lg" />
