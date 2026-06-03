@@ -32,8 +32,8 @@ export default function AgentDashboardPage({ user }) {
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Hero greeting */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-6 md:p-8">
-        <div className="absolute inset-0 opacity-10">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-6 md:p-8 isolate">
+        <div className="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white translate-x-20 -translate-y-20" />
           <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white -translate-x-16 translate-y-16" />
         </div>
