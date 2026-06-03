@@ -35,11 +35,11 @@ export default async function Header() {
             height={56}
             className="object-contain"
             style={{
-              height: '194px',
+              height: '42px',
               width: 'auto',
               background: 'white',
               borderRadius: '8px',
-              padding: '4px 12px',
+              padding: '4px 10px',
             }}
           />
         </Link>

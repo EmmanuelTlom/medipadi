@@ -30,7 +30,7 @@ export default function AgentDashboardPage({ user }) {
     'Agent';
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6 isolate">
       {/* Hero greeting */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 p-6 md:p-8 isolate">
         <div className="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">

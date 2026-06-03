@@ -62,7 +62,7 @@ async function MemberDashboard() {
     user.email.split('@')[0];
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6 isolate">
       <WelcomeDialog />
 
       {/* Hero greeting */}

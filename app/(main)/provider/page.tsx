@@ -54,7 +54,7 @@ export default async function ProviderDashboardPage() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6 isolate">
       {/* Hero */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 via-blue-600 to-emerald-700 p-6 md:p-8 isolate">
         <div className="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">

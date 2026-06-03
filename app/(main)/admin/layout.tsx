@@ -69,7 +69,7 @@ export default async function AdminLayout({ children }) {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6 isolate">
       {/* Hero header */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-emerald-900 p-6 md:p-8">
         <div className="absolute inset-0 opacity-5">
