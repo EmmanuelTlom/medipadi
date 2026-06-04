@@ -40,6 +40,29 @@ export async function submitClaim (
             throw new Error("Member not found");
         }
 
+        // 7-day waiting period from account creation / subscription
+        const subscriptionStart = member.lastCreditAllocation ?? member.createdAt;
+        const daysSinceSubscription = (Date.now() - subscriptionStart.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSinceSubscription < 7) {
+            const remaining = Math.ceil(7 - daysSinceSubscription);
+            throw new Error(`Member is within the 7-day waiting period. ${remaining} day${remaining !== 1 ? 's' : ''} remaining before claims are active.`);
+        }
+
+        // 1 claim per calendar month
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const existingClaimThisMonth = await db.claim.findFirst({
+            where: {
+                memberId: member.id,
+                status: { not: "REJECTED" },
+                createdAt: { gte: monthStart, lt: monthEnd },
+            },
+        });
+        if (existingClaimThisMonth) {
+            throw new Error("Member has already used their claim for this month. One claim is allowed per calendar month.");
+        }
+
         const claim = await db.claim.create({
             data: {
                 providerId,

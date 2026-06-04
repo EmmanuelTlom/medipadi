@@ -7,18 +7,33 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Banknote, FileText, Search } from 'lucide-react';
+import { AlertCircle, Banknote, CheckCircle, FileText, Search, ShieldAlert, User } from 'lucide-react';
 import { useForm, useRequest } from 'alova/client';
 
+import { Badge } from '@/components/ui/badge';
 import { BarLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Member } from '@/interfaces/users';
 import { Money } from '@toneflix/money';
 import { Textarea } from '@/components/ui/textarea';
 import { alova } from '@/lib/alova';
 import { toast } from 'sonner';
+
+interface VerifiedMember {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  membershipId: string;
+  subscriptionEnd: string | null;
+  profilePhotoUrl: string | null;
+  planName: string | null;
+  planSlug: string | null;
+  isActive: boolean;
+  canClaim: boolean;
+  claimBlockReason: string | null;
+}
 
 export function ClaimSubmission({ user }) {
   const {
@@ -28,14 +43,8 @@ export function ClaimSubmission({ user }) {
     update,
   } = useRequest(
     (membershipId: string) =>
-      alova.Get<Member>('/api/provider/verify-member', {
-        params: {
-          membershipId,
-        },
-      }),
-    {
-      immediate: false,
-    },
+      alova.Get<VerifiedMember>('/api/provider/verify-member', { params: { membershipId } }),
+    { immediate: false },
   )
     .onSuccess(({ data }) => {
       toast.success(`Member verified: ${data.firstName} ${data.lastName}`);
@@ -54,9 +63,7 @@ export function ClaimSubmission({ user }) {
     updateForm: setFormData,
   } = useForm(
     (form) =>
-      alova.Post('/api/provider/submit-claim', form, {
-        name: 'submit-claim',
-      }),
+      alova.Post('/api/provider/submit-claim', form, { name: 'submit-claim' }),
     {
       resetAfterSubmiting: true,
       initialForm: {
@@ -77,12 +84,8 @@ export function ClaimSubmission({ user }) {
     toast.error(error.message || 'Failed to submit claim');
   });
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setFormData({
-      [e.target.name]: e.target.value,
-    });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ [e.target.name]: e.target.value });
   };
 
   const handleVerifyMember = async () => {
@@ -90,55 +93,40 @@ export function ClaimSubmission({ user }) {
       toast.error('Please enter a membership ID');
       return;
     }
-
     await verifyMember(formData.memberId);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!data) {
-      toast.error('Please verify the member first');
-      return;
-    }
-
-    if (!formData.amount || formData.amount <= 0) {
-      toast.error('Please enter a valid claim amount');
-      return;
-    }
-
-    if (!formData.description) {
-      toast.error('Please provide a claim description');
-      return;
-    }
+    if (!data) { toast.error('Please verify the member first'); return; }
+    if (!data.canClaim) { toast.error(data.claimBlockReason || 'Member cannot claim at this time'); return; }
+    if (!formData.amount || formData.amount <= 0) { toast.error('Please enter a valid claim amount'); return; }
+    if (!formData.description) { toast.error('Please provide a claim description'); return; }
 
     await submitClaimFn();
   };
 
   return (
     <div className="space-y-6">
-      {/* Claim Submission Form */}
       <Card className="border-blue-900/20">
         <CardHeader>
           <CardTitle className="text-xl font-bold text-white flex items-center">
             <FileText className="h-5 w-5 mr-2 text-blue-400" />
             Submit New Claim
           </CardTitle>
-          <CardDescription>
-            Submit a claim for services provided to a member
-          </CardDescription>
+          <CardDescription>Submit a claim for services provided to a member</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Member Verification */}
+            {/* Member ID lookup */}
             <div className="space-y-2">
               <Label htmlFor="memberId">Member ID</Label>
               <div className="flex gap-2">
                 <Input
                   id="memberId"
                   name="memberId"
-                  type="text"
-                  placeholder="MED1234567890"
+                  placeholder="MED-KUJ001"
                   value={formData.memberId}
                   onChange={handleInputChange}
                   disabled={submitting || verifying}
@@ -155,50 +143,74 @@ export function ClaimSubmission({ user }) {
                   Verify
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Enter the member's ID or scan their QR code
-              </p>
+              <p className="text-xs text-muted-foreground">Enter the member's ID or scan their QR code</p>
             </div>
 
-            {/* Verified Member Info */}
+            {/* Verified member info */}
             {data && (
-              <Card className="bg-blue-950/20 border-blue-900/30">
-                <CardContent className="pt-6">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Member Name:
-                      </span>
-                      <span className="text-sm font-semibold">
-                        {data.firstName} {data.lastName}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Member ID:
-                      </span>
-                      <span className="text-sm font-mono">
-                        {data.membershipId}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Status:
-                      </span>
-                      <span
-                        className={`text-sm font-semibold ${data.isActive ? 'text-green-400' : 'text-red-400'}`}
-                      >
-                        {data.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                    {!data.isActive && (
-                      <div className="bg-red-950/20 border border-red-900/30 rounded-md p-2 mt-2">
-                        <p className="text-xs text-red-400">
-                          Warning: Member subscription has expired. Claims may
-                          not be processed.
-                        </p>
+              <Card className={`${data.canClaim ? 'bg-blue-950/20 border-blue-900/30' : 'bg-amber-950/10 border-amber-900/30'}`}>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex gap-4">
+                    {/* Photo */}
+                    {data.profilePhotoUrl && (
+                      <div className="shrink-0">
+                        <img
+                          src={data.profilePhotoUrl}
+                          alt="Member"
+                          className="w-16 h-16 rounded-xl object-cover border-2 border-emerald-700/40"
+                        />
                       </div>
                     )}
+                    <div className="flex-1 space-y-2 text-sm">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="font-semibold text-white text-base">
+                          {data.firstName} {data.lastName}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className={data.isActive ? 'bg-emerald-900/20 border-emerald-700/30 text-emerald-400' : 'bg-red-900/20 border-red-700/30 text-red-400'}>
+                            {data.isActive ? <CheckCircle className="h-3 w-3 mr-1" /> : <AlertCircle className="h-3 w-3 mr-1" />}
+                            {data.isActive ? 'Active' : 'Inactive'}
+                          </Badge>
+                          {data.canClaim ? (
+                            <Badge variant="outline" className="bg-emerald-900/20 border-emerald-700/30 text-emerald-400 text-xs">
+                              <CheckCircle className="h-3 w-3 mr-1" /> Can Claim
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-amber-900/20 border-amber-700/30 text-amber-400 text-xs">
+                              <ShieldAlert className="h-3 w-3 mr-1" /> Blocked
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                        <span className="text-muted-foreground">Member ID:</span>
+                        <span className="font-mono text-white">{data.membershipId}</span>
+
+                        {data.planName && (
+                          <>
+                            <span className="text-muted-foreground">Subscription:</span>
+                            <span className="text-emerald-400 font-medium">{data.planName}</span>
+                          </>
+                        )}
+
+                        {data.subscriptionEnd && (
+                          <>
+                            <span className="text-muted-foreground">Expires:</span>
+                            <span className="text-white">
+                              {new Date(data.subscriptionEnd).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      {!data.canClaim && data.claimBlockReason && (
+                        <div className="bg-amber-950/20 border border-amber-900/30 rounded-md p-2 mt-1 flex items-start gap-2">
+                          <ShieldAlert className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <p className="text-xs text-amber-300">{data.claimBlockReason}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -218,11 +230,9 @@ export function ClaimSubmission({ user }) {
               />
             </div>
 
-            {/* Claim Amount */}
+            {/* Amount */}
             <div className="space-y-2">
-              <Label htmlFor="amount">
-                Claim Amount ({Money.currencyCode()})
-              </Label>
+              <Label htmlFor="amount">Claim Amount ({Money.currencyCode()})</Label>
               <div className="relative">
                 <div className="absolute left-3 flex items-center h-full w-4 text-muted-foreground">
                   {Money.currencySymbol()}
@@ -237,7 +247,7 @@ export function ClaimSubmission({ user }) {
                   className="pl-10"
                   step="0.01"
                   min="0"
-                  disabled={submitting || verifying || !data}
+                  disabled={submitting || verifying || !data?.canClaim}
                 />
               </div>
             </div>
@@ -251,21 +261,18 @@ export function ClaimSubmission({ user }) {
                 placeholder="Describe the services provided..."
                 value={formData.description}
                 onChange={handleInputChange}
-                disabled={submitting || verifying || !data}
+                disabled={submitting || verifying || !data?.canClaim}
                 rows={4}
               />
-              <p className="text-xs text-muted-foreground">
-                Provide detailed information about the medical services rendered
-              </p>
+              <p className="text-xs text-muted-foreground">Provide detailed information about the medical services rendered</p>
             </div>
 
-            {submitting ||
-              (verifying && <BarLoader width="100%" color="#3b82f6" />)}
+            {(submitting || verifying) && <BarLoader width="100%" color="#3b82f6" />}
 
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={submitting || verifying || !data}
+              disabled={submitting || verifying || !data || !data.canClaim}
             >
               <FileText className="h-4 w-4 mr-2" />
               {submitting ? 'Submitting...' : 'Submit Claim'}
@@ -274,16 +281,16 @@ export function ClaimSubmission({ user }) {
         </CardContent>
       </Card>
 
-      {/* Info Card */}
       <Card className="border-yellow-900/20 bg-yellow-950/10">
         <CardContent className="pt-6">
           <div className="space-y-2 text-sm">
             <h4 className="font-semibold text-yellow-400">Claims Process:</h4>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
               <li>All claims are subject to admin review and approval</li>
-              <li>Processing typically takes 2-3 business days</li>
-              <li>You'll be notified once your claim is processed</li>
-              <li>Approved claims will be paid to your registered account</li>
+              <li>Processing typically takes 2–3 business days</li>
+              <li>Each member is limited to <strong className="text-white">1 claim per calendar month</strong></li>
+              <li>Claims are blocked for <strong className="text-white">7 days</strong> after a new subscription</li>
+              <li>Approved claims will be paid to your registered bank account</li>
             </ul>
           </div>
         </CardContent>

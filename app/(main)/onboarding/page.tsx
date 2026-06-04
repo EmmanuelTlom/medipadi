@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, Loader2, Stethoscope, User, UserCheck } from 'lucide-react';
+import { InfoIcon, Loader2, Stethoscope, User } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -31,6 +31,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function OnboardingPage() {
   const [step, setStep] = useState('choose-role');
+  const [submittingRole, setSubmittingRole] = useState(null);
   const router = useRouter();
 
   // Custom hook for user role server action
@@ -59,31 +60,11 @@ export default function OnboardingPage() {
   // Handle patient role selection
   const handlePatientSelection = async () => {
     if (loading) return;
-
+    setSubmittingRole('PATIENT');
     const formData = new FormData();
     formData.append('role', 'PATIENT');
-
     await submitUserRole(formData);
-  };
-
-  // Handle agent role selection
-  const handleAgentSelection = async () => {
-    if (loading) return;
-
-    const formData = new FormData();
-    formData.append('role', 'AGENT');
-
-    await submitUserRole(formData);
-  };
-
-  // Handle provider role selection
-  const handleProviderSelection = async () => {
-    if (loading) return;
-
-    const formData = new FormData();
-    formData.append('role', 'PROVIDER');
-
-    await submitUserRole(formData);
+    setSubmittingRole(null);
   };
 
   useEffect(() => {
@@ -95,7 +76,7 @@ export default function OnboardingPage() {
   // Added missing onDoctorSubmit function
   const onDoctorSubmit = async (data) => {
     if (loading) return;
-
+    setSubmittingRole('DOCTOR');
     const formData = new FormData();
     formData.append('role', 'DOCTOR');
     formData.append('specialty', data.specialty);
@@ -129,7 +110,7 @@ export default function OnboardingPage() {
               className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700"
               disabled={loading}
             >
-              {loading ? (
+              {submittingRole === 'PATIENT' ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
@@ -165,63 +146,17 @@ export default function OnboardingPage() {
           </CardContent>
         </Card>
 
-        <Card
-          className="border-emerald-900/20 hover:border-emerald-700/40 cursor-pointer transition-all"
-          onClick={() => !loading && handleAgentSelection()}
-        >
+        <Card className="border-muted/20 bg-muted/5 md:col-span-2 lg:col-span-1">
           <CardContent className="pt-6 pb-6 flex flex-col items-center text-center">
-            <div className="p-4 bg-emerald-900/20 rounded-full mb-4">
-              <UserCheck className="h-8 w-8 text-emerald-400" />
+            <div className="p-4 bg-muted/20 rounded-full mb-4">
+              <InfoIcon className="h-8 w-8 text-muted-foreground" />
             </div>
             <CardTitle className="text-xl font-semibold text-white mb-2">
-              Join as an Agent
+              Agent or Provider?
             </CardTitle>
-            <CardDescription className="mb-4">
-              Help members register, fund wallets, and manage subscriptions
+            <CardDescription>
+              Agent and Provider accounts are created by the MediPadi admin. Contact your administrator to get access.
             </CardDescription>
-            <Button
-              className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                'Continue as Agent'
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="border-emerald-900/20 hover:border-emerald-700/40 cursor-pointer transition-all"
-          onClick={() => !loading && handleProviderSelection()}
-        >
-          <CardContent className="pt-6 pb-6 flex flex-col items-center text-center">
-            <div className="p-4 bg-emerald-900/20 rounded-full mb-4">
-              <Building2 className="h-8 w-8 text-emerald-400" />
-            </div>
-            <CardTitle className="text-xl font-semibold text-white mb-2">
-              Join as a Provider
-            </CardTitle>
-            <CardDescription className="mb-4">
-              Verify members, submit claims, and provide healthcare services
-            </CardDescription>
-            <Button
-              className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                'Continue as Provider'
-              )}
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -335,7 +270,7 @@ export default function OnboardingPage() {
                 className="bg-emerald-600 hover:bg-emerald-700"
                 disabled={loading}
               >
-                {loading ? (
+                {submittingRole === 'DOCTOR' ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Submitting...

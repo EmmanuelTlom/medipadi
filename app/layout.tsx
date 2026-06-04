@@ -5,6 +5,7 @@ import { Facebook, Instagram, Linkedin, X } from 'lucide-react';
 import { ClerkProvider } from '@clerk/nextjs';
 import ClientBase from './ClientBase';
 import Header from '@/components/header';
+import TawkTo from '@/components/tawk-to';
 import { Inter } from 'next/font/google';
 import { Money } from '@toneflix/money';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -80,6 +81,7 @@ export default function RootLayout({ children }) {
           >
             <Header />
             <main className="min-h-screen">{children}</main>
+            <TawkTo />
             <Toaster richColors />
 
             <footer className="bg-muted/50 py-12">

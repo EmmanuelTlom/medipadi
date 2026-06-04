@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Mail, Phone, User, UserPlus } from 'lucide-react';
+import { Camera, Mail, MapPin, Phone, Upload, User, UserPlus, X } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, useRequest } from 'alova/client';
 
 import { BarLoader } from 'react-spinners';
@@ -41,6 +41,94 @@ interface SubscriptionPlan {
   duration: number;
 }
 
+/* ── Photo capture helpers ── */
+function PhotoCapture({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [streaming, setStreaming] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+  const startCamera = async () => {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      setStream(s);
+      if (videoRef.current) videoRef.current.srcObject = s;
+      setStreaming(true);
+    } catch {
+      toast.error('Could not access camera — use file upload instead');
+    }
+  };
+
+  const stopCamera = () => {
+    stream?.getTracks().forEach(t => t.stop());
+    setStream(null);
+    setStreaming(false);
+  };
+
+  const capture = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d')!.drawImage(video, 0, 0);
+    onChange(canvas.toDataURL('image/jpeg', 0.8));
+    stopCamera();
+  };
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => onChange(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const clear = () => { onChange(''); stopCamera(); };
+
+  if (value) {
+    return (
+      <div className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-emerald-700/40">
+        <img src={value} alt="Member photo" className="w-full h-full object-cover" />
+        <button onClick={clear} className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 text-white hover:bg-red-600 transition-colors">
+          <X className="h-3 w-3" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {streaming ? (
+        <div className="space-y-2">
+          <video ref={videoRef} autoPlay playsInline className="w-full rounded-xl border border-emerald-700/30 max-h-52 object-cover" />
+          <canvas ref={canvasRef} className="hidden" />
+          <div className="flex gap-2">
+            <Button type="button" size="sm" onClick={capture} className="bg-emerald-600 hover:bg-emerald-700 flex-1">
+              <Camera className="h-3.5 w-3.5 mr-1.5" /> Capture
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={stopCamera}>Cancel</Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <Button type="button" size="sm" variant="outline" onClick={startCamera} className="border-emerald-700/40 flex-1">
+            <Camera className="h-3.5 w-3.5 mr-1.5" /> Use Camera
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => fileRef.current?.click()} className="border-emerald-700/40 flex-1">
+            <Upload className="h-3.5 w-3.5 mr-1.5" /> Upload Photo
+          </Button>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+        </div>
+      )}
+      <p className="text-xs text-muted-foreground">
+        Capture or upload a clear face photo — used by providers to verify the member's identity.
+      </p>
+    </div>
+  );
+}
+
 export function MemberRegistration({
   user,
 }: {
@@ -50,12 +138,10 @@ export function MemberRegistration({
   const [error, setError] = useState<
     ValidationException<typeof formData> | undefined
   >(new ValidationException(''));
-  const [subscriptionPlans, setSubscriptionPlans] = useState<
-    SubscriptionPlan[]
-  >([]);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const [photoUrl, setPhotoUrl] = useState('');
 
-  // Fetch subscription plans on mount
   useEffect(() => {
     fetch('/api/subscription-plans')
       .then((res) => res.json())
@@ -63,8 +149,7 @@ export function MemberRegistration({
         setSubscriptionPlans(data.data || []);
         setLoadingPlans(false);
       })
-      .catch((err) => {
-        console.error('Failed to fetch subscription plans:', err);
+      .catch(() => {
         toast.error('Failed to load subscription plans');
         setLoadingPlans(false);
       });
@@ -94,8 +179,10 @@ export function MemberRegistration({
         lastName: '',
         email: '',
         phoneNumber: '',
+        location: '',
         planType: 'monthly',
         subscriptionCost: 0,
+        profilePhotoUrl: '',
       },
     },
   );
@@ -107,123 +194,80 @@ export function MemberRegistration({
 
   onSuccess(({ data }: { data: any }) => {
     const member = data.member;
-    toast.success(
-      `Successfully registered ${member.firstName} ${member.lastName}!`,
-    );
+    toast.success(`Successfully registered ${member.firstName} ${member.lastName}!`);
     setSuccessData(member);
+    setPhotoUrl('');
     send();
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validate all fields
-    if (
-      !formData.firstName ||
-      !formData.lastName ||
-      !formData.email ||
-      !formData.phoneNumber
-    ) {
-      toast.error('Please fill in all fields');
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phoneNumber) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast.error('Please enter a valid email address');
       return;
     }
 
-    // Get selected plan cost
-    const selectedPlan = subscriptionPlans.find(
-      (p) => p.slug === formData.planType,
-    );
+    const selectedPlan = subscriptionPlans.find((p) => p.slug === formData.planType);
     if (!selectedPlan) {
       toast.error('Invalid subscription plan selected');
       return;
     }
 
     const subscriptionCost = selectedPlan.price;
-    const walletBalance = user.walletBalance || 0;
-
-    if (walletBalance < subscriptionCost) {
-      toast.error(
-        `Insufficient wallet balance. Required: ${Money.format(subscriptionCost)}, Available: ${Money.format(walletBalance)}`,
-      );
+    if ((user.walletBalance || 0) < subscriptionCost) {
+      toast.error(`Insufficient wallet balance. Required: ${Money.format(subscriptionCost)}, Available: ${Money.format(user.walletBalance || 0)}`);
       return;
     }
 
-    setFormData({
-      subscriptionCost,
-    });
-
+    setFormData({ subscriptionCost, profilePhotoUrl: photoUrl });
     await registerMember();
   };
 
-  const selectedPlan = subscriptionPlans.find(
-    (p) => p.slug === formData.planType,
-  );
+  const selectedPlan = subscriptionPlans.find((p) => p.slug === formData.planType);
   const selectedPlanCost = selectedPlan?.price || 0;
   const walletBalance = user.walletBalance || 0;
   const hasSufficientFunds = walletBalance >= selectedPlanCost;
 
   return (
     <div className="space-y-6">
-      {/* Registration Form Card */}
       <Card className="border-emerald-900/20">
         <CardHeader>
           <CardTitle className="text-xl font-bold text-white flex items-center">
             <UserPlus className="h-5 w-5 mr-2 text-emerald-400" />
             Register New Member
           </CardTitle>
-          <CardDescription>
-            Register a new patient and pay for their subscription
-          </CardDescription>
+          <CardDescription>Register a new patient and pay for their subscription</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Fields */}
+            {/* Name */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    placeholder="John"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    className="pl-10"
-                    disabled={loading}
-                  />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input id="firstName" name="firstName" placeholder="John" value={formData.firstName} onChange={handleInputChange} className="pl-10" disabled={loading} />
                 </div>
-                <FieldError errors={error.errors?.firstName} />
+                <FieldError errors={error?.errors?.firstName} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    placeholder="Doe"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    className="pl-10"
-                    disabled={loading}
-                  />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input id="lastName" name="lastName" placeholder="Doe" value={formData.lastName} onChange={handleInputChange} className="pl-10" disabled={loading} />
                 </div>
-                <FieldError errors={error.errors?.lastName} />
+                <FieldError errors={error?.errors?.lastName} />
               </div>
             </div>
 
@@ -231,56 +275,52 @@ export function MemberRegistration({
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="john.doe@example.com"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="pl-10"
-                  disabled={loading}
-                />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input id="email" name="email" type="email" placeholder="john.doe@example.com" value={formData.email} onChange={handleInputChange} className="pl-10" disabled={loading} />
               </div>
-              <FieldError errors={error.errors?.email} />
+              <FieldError errors={error?.errors?.email} />
             </div>
 
-            {/* Phone Number */}
+            {/* Phone */}
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">Phone Number</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="phoneNumber"
-                  name="phoneNumber"
-                  type="tel"
-                  placeholder="+1234567890"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  className="pl-10"
-                  disabled={loading}
-                />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input id="phoneNumber" name="phoneNumber" type="tel" placeholder="+2348012345678" value={formData.phoneNumber} onChange={handleInputChange} className="pl-10" disabled={loading} />
               </div>
-              <FieldError errors={error.errors?.phoneNumber} />
+              <FieldError errors={error?.errors?.phoneNumber} />
             </div>
 
-            {/* Plan Selection */}
+            {/* Location */}
+            <div className="space-y-2">
+              <Label htmlFor="location">
+                Location <span className="text-muted-foreground text-xs">(used in membership ID)</span>
+              </Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input id="location" name="location" placeholder="e.g. Kuje, Gwagwa, Zuba" value={formData.location} onChange={handleInputChange} className="pl-10" disabled={loading} />
+              </div>
+              <p className="text-xs text-muted-foreground">Creates an ID like <span className="font-mono text-emerald-400">MED-KUJ001</span></p>
+            </div>
+
+            {/* Member Photo */}
+            <div className="space-y-2">
+              <Label>
+                Member Photo <span className="text-muted-foreground text-xs">(recommended for identity verification)</span>
+              </Label>
+              <PhotoCapture value={photoUrl} onChange={setPhotoUrl} />
+            </div>
+
+            {/* Plan */}
             <div className="space-y-2">
               <Label htmlFor="planType">Subscription Plan</Label>
               <Select
                 value={formData.planType}
-                onValueChange={(value: string) =>
-                  setFormData({ ...formData, planType: value })
-                }
+                onValueChange={(value) => setFormData({ ...formData, planType: value })}
                 disabled={loading || loadingPlans}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={
-                      loadingPlans ? 'Loading plans...' : 'Select a plan'
-                    }
-                  />
+                  <SelectValue placeholder={loadingPlans ? 'Loading plans...' : 'Select a plan'} />
                 </SelectTrigger>
                 <SelectContent>
                   {subscriptionPlans.map((plan) => (
@@ -288,8 +328,7 @@ export function MemberRegistration({
                       <div className="flex items-center justify-between w-full">
                         <span>{plan.name}</span>
                         <span className="ml-4 text-emerald-400">
-                          {Money.format(plan.price)}/
-                          {plan.duration === 1 ? 'month' : 'year'}
+                          {Money.format(plan.price)}/{plan.duration === 1 ? 'month' : `${plan.duration}mo`}
                           {` (${plan.credits} credits)`}
                         </span>
                       </div>
@@ -297,48 +336,34 @@ export function MemberRegistration({
                   ))}
                 </SelectContent>
               </Select>
-              <FieldError errors={error.errors?.planType} />
+              <FieldError errors={error?.errors?.planType} />
             </div>
 
             {/* Cost Summary */}
             <Card className="bg-emerald-950/20 border-emerald-900/30">
-              <CardContent className="pt-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+              <CardContent className="pt-5 pb-4">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
                     <span>Subscription Cost:</span>
-                    <span className="font-semibold">
-                      {Money.format(selectedPlanCost)}
-                    </span>
+                    <span className="font-semibold">{Money.format(selectedPlanCost)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between">
                     <span>Your Wallet Balance:</span>
-                    <span
-                      className={`font-semibold ${hasSufficientFunds ? 'text-emerald-400' : 'text-red-400'}`}
-                    >
+                    <span className={`font-semibold ${hasSufficientFunds ? 'text-emerald-400' : 'text-red-400'}`}>
                       {Money.format(walletBalance)}
                     </span>
                   </div>
                   {selectedPlan && (
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between">
                       <span>Credits Included:</span>
-                      <span className="font-semibold text-emerald-400">
-                        {selectedPlan.credits} credits
-                      </span>
+                      <span className="font-semibold text-emerald-400">{selectedPlan.credits} credits</span>
                     </div>
                   )}
-                  <div className="border-t border-emerald-900/30 pt-2 mt-2">
-                    <div className="flex justify-between font-bold">
-                      <span>Balance After Registration:</span>
-                      <span
-                        className={
-                          hasSufficientFunds
-                            ? 'text-emerald-400'
-                            : 'text-red-400'
-                        }
-                      >
-                        {Money.format(walletBalance - selectedPlanCost)}
-                      </span>
-                    </div>
+                  <div className="border-t border-emerald-900/30 pt-2 mt-2 flex justify-between font-bold">
+                    <span>Balance After Registration:</span>
+                    <span className={hasSufficientFunds ? 'text-emerald-400' : 'text-red-400'}>
+                      {Money.format(walletBalance - selectedPlanCost)}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -346,29 +371,20 @@ export function MemberRegistration({
 
             {!hasSufficientFunds && (
               <div className="bg-red-950/20 border border-red-900/30 rounded-md p-3">
-                <p className="text-sm text-red-400">
-                  Insufficient wallet balance. Please fund your wallet first.
-                </p>
+                <p className="text-sm text-red-400">Insufficient wallet balance. Please fund your wallet first.</p>
               </div>
             )}
 
             {loading && <BarLoader width="100%" color="#10b981" />}
 
-            <Button
-              type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
-              disabled={loading || !hasSufficientFunds}
-            >
+            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={loading || !hasSufficientFunds}>
               <UserPlus className="h-4 w-4 mr-2" />
-              {loading
-                ? 'Registering...'
-                : `Register Member (${Money.format(selectedPlanCost)})`}
+              {loading ? 'Registering...' : `Register Member (${Money.format(selectedPlanCost)})`}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      {/* Info Card */}
       <Card className="border-blue-900/20 bg-blue-950/10">
         <CardContent className="pt-6">
           <div className="space-y-2 text-sm">
@@ -376,23 +392,17 @@ export function MemberRegistration({
             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
               <li>The subscription cost will be deducted from your wallet</li>
               <li>Member will receive login credentials via email</li>
-              <li>
-                Member will have immediate access to all platform features
-              </li>
-              <li>Member will have a 14-day waiting period before claims are active</li>
+              <li>Member will have immediate access to the platform</li>
+              <li>Member must wait <strong className="text-white">7 days</strong> after subscription before claims are active</li>
+              <li>Each member is entitled to <strong className="text-white">1 claim per calendar month</strong></li>
             </ul>
           </div>
         </CardContent>
       </Card>
 
-      {/* Success Dialog */}
       <RegistrationSuccessDialog
         open={!!successData}
-        onOpenChange={(open: any) => {
-          if (!open) {
-            setSuccessData(null);
-          }
-        }}
+        onOpenChange={(open: any) => { if (!open) setSuccessData(null); }}
         memberData={successData}
       />
     </div>

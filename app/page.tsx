@@ -11,7 +11,7 @@ export const metadata = {
   },
 };
 
-import { ArrowRight, Stethoscope, ShieldCheck, Users, HeartPulse } from 'lucide-react';
+import { ArrowRight, Stethoscope, ShieldCheck, Target, Eye, AlertTriangle } from 'lucide-react';
 import FaqAccordion from '@/components/faq-accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { creditBenefits, features, testimonials } from '@/lib/data';
@@ -41,52 +41,6 @@ const planRules = [
   'No substitution of members mid-cycle',
 ];
 
-const growthPhases = [
-  {
-    phase: 'Phase 1',
-    title: 'Kuje & Surrounding Villages',
-    desc: 'Pilot launch — test technology, onboard providers, recruit agents, and learn.',
-    icon: <ShieldCheck className="h-5 w-5 text-emerald-400" />,
-    active: true,
-  },
-  {
-    phase: 'Phase 2',
-    title: 'Abuja Expansion',
-    desc: 'Scale with refined SOPs and social proof gathered from the pilot.',
-    icon: <Users className="h-5 w-5 text-emerald-400" />,
-    active: false,
-  },
-  {
-    phase: 'Phase 3',
-    title: 'National Scale',
-    desc: 'Nationwide partnerships, tiered pricing, and premium plan options.',
-    icon: <HeartPulse className="h-5 w-5 text-emerald-400" />,
-    active: false,
-  },
-];
-
-const pilotTimeline = [
-  {
-    phase: 'Provider Setup',
-    timeframe: 'Week 1–2',
-    actions: 'Secure 3–4 providers, negotiate package pricing, sign contracts, train on tech.',
-  },
-  {
-    phase: 'Agent Recruitment',
-    timeframe: 'Week 3',
-    actions: 'Recruit & train 20–30 agents, prepare branding & marketing materials.',
-  },
-  {
-    phase: 'Soft Launch',
-    timeframe: 'Month 1',
-    actions: 'Target 300–500 members, test claims & tech system, monitor provider compliance.',
-  },
-  {
-    phase: 'Aggressive Enrollment',
-    timeframe: 'Month 2–3',
-    actions: 'Expand marketing, reach 2,000–3,000 members, monitor claims, adjust operations.',
-  },
-];
 
 const faqs = [
   {
@@ -225,12 +179,11 @@ export default async function Home() {
       {/* Trust strip */}
       <section className="border-y border-emerald-900/20 bg-emerald-900/10">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-emerald-900/20">
+          <div className="grid grid-cols-3 divide-x divide-emerald-900/20">
             {[
               { value: '₦1,200/mo', label: 'Starting plan price' },
               { value: '< 5 mins', label: 'To register' },
               { value: '₦5,000', label: 'Claim cap per episode' },
-              { value: 'Every Friday', label: 'Provider settlement' },
             ].map((item) => (
               <div key={item.label} className="py-6 px-4 text-center">
                 <p className="text-xl md:text-2xl font-bold text-emerald-400">{item.value}</p>
@@ -241,25 +194,110 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Vision Section */}
+      {/* Vision & Mission */}
       <section className="py-16 bg-emerald-900/10 border-b border-emerald-900/20">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center space-y-4">
-            <Badge
-              variant="outline"
-              className="bg-emerald-900/30 border-emerald-700/30 px-4 py-1 text-emerald-400 text-sm font-medium"
-            >
-              Our Vision
+          <div className="text-center mb-10">
+            <Badge variant="outline" className="bg-emerald-900/30 border-emerald-700/30 px-4 py-1 text-emerald-400 text-sm font-medium">
+              Who We Are
             </Badge>
-            <h2 className="text-2xl md:text-3xl font-bold text-white">
-              Affordable health support for grassroots communities
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card className="bg-card border-emerald-900/20">
+              <CardContent className="pt-6 space-y-3">
+                <div className="bg-emerald-900/20 p-3 rounded-lg w-fit">
+                  <Eye className="h-6 w-6 text-emerald-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Our Vision</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  A Nigeria where every grassroots family — regardless of income — can access quality outpatient healthcare without
+                  fear of unexpected bills. <em className="text-white/70">"Small small support when sickness shows."</em>
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-emerald-900/20">
+              <CardContent className="pt-6 space-y-3">
+                <div className="bg-emerald-900/20 p-3 rounded-lg w-fit">
+                  <Target className="h-6 w-6 text-emerald-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Our Mission</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  To provide structured, reliable prepaid health support for common outpatient illnesses — starting in Kuje — through
+                  a network of certified providers, community agents, and technology that makes coverage simple and transparent.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Malaria danger + why subscribe */}
+      <section className="py-20 bg-red-950/5 border-y border-red-900/10">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Badge variant="outline" className="bg-red-900/20 border-red-700/30 px-4 py-1 text-red-400 text-sm font-medium mb-4">
+              The Real Cost of Doing Nothing
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Malaria Kills — and It&apos;s Expensive Too
             </h2>
-            <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
-              MediPadi is a <span className="text-emerald-400 font-medium">prepaid health support plan</span> — not insurance or an HMO.
-              Starting in Kuje and surrounding villages, our mission is to provide structured, reliable outpatient
-              care for everyday families. <em className="text-white/70">"Small small support when sickness shows."</em>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Malaria is the leading cause of outpatient visits in Nigeria. Without a plan, one episode can wipe out a family&apos;s weekly earnings.
             </p>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
+            {[
+              {
+                stat: '#1 Killer',
+                label: 'Malaria is the leading cause of death in children under 5 in Nigeria',
+                color: 'red',
+              },
+              {
+                stat: '₦5,000–₦15,000',
+                label: 'Average cost of a single malaria treatment episode out-of-pocket',
+                color: 'amber',
+              },
+              {
+                stat: '97 Million',
+                label: 'Nigerians exposed to malaria risk annually — mostly in communities like yours',
+                color: 'orange',
+              },
+            ].map(({ stat, label, color }) => (
+              <Card key={stat} className={`border-${color}-900/20 bg-${color}-950/5`}>
+                <CardContent className="pt-6 text-center space-y-2">
+                  <AlertTriangle className={`h-8 w-8 text-${color}-400 mx-auto`} />
+                  <p className={`text-2xl font-bold text-${color}-400`}>{stat}</p>
+                  <p className="text-sm text-muted-foreground">{label}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="bg-gradient-to-r from-emerald-900/20 to-teal-900/10 border-emerald-800/20 max-w-3xl mx-auto">
+            <CardContent className="pt-6 pb-6 space-y-4">
+              <h3 className="text-xl font-bold text-white">Why subscribing to MediPadi makes sense</h3>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                {[
+                  'Pay as little as ₦1,200/month — less than a single malaria treatment episode',
+                  'No paperwork or insurance jargon — present your ID, get treated, go home',
+                  'Covers malaria, flu, fever, minor infections, BP & sugar checks, injections',
+                  'Fixed claim cap of ₦5,000 per episode — you know exactly what you\'re getting',
+                  'Partner clinics are pre-screened and close to your community',
+                  'Your family is protected before illness strikes — not after',
+                ].map((point, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="mt-0.5 bg-emerald-900/30 p-1 rounded-full shrink-0">
+                      <svg className="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -490,109 +528,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Growth Roadmap — NEW */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <Badge
-              variant="outline"
-              className="bg-emerald-900/30 border-emerald-700/30 px-4 py-1 text-emerald-400 text-sm font-medium mb-4"
-            >
-              Growth Roadmap
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Where We&apos;re Headed
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              MediPadi starts local and grows with trust, data, and community proof.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {growthPhases.map((phase, index) => (
-              <Card
-                key={index}
-                className={`bg-card transition-all duration-300 ${
-                  phase.active
-                    ? 'border-emerald-600/60 shadow-emerald-900/20 shadow-lg'
-                    : 'border-emerald-900/20 opacity-70'
-                }`}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
-                      {phase.phase}
-                    </span>
-                    {phase.active && (
-                      <span className="text-xs bg-emerald-900/40 text-emerald-400 border border-emerald-700/30 px-2 py-0.5 rounded-full">
-                        Active Now
-                      </span>
-                    )}
-                  </div>
-                  <div className="bg-emerald-900/20 p-3 rounded-lg w-fit mb-2">
-                    {phase.icon}
-                  </div>
-                  <CardTitle className="text-lg font-semibold text-white">
-                    {phase.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm">{phase.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pilot Rollout Timeline — NEW */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <Badge
-              variant="outline"
-              className="bg-emerald-900/30 border-emerald-700/30 px-4 py-1 text-emerald-400 text-sm font-medium mb-4"
-            >
-              Pilot Rollout
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              60–90 Day Launch Plan
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              A structured, phased rollout starting in Kuje — built to test, learn, and scale responsibly.
-            </p>
-          </div>
-
-          <div className="relative max-w-3xl mx-auto">
-            {/* Vertical line */}
-            <div className="absolute left-[18px] top-0 bottom-0 w-px bg-emerald-900/40 hidden sm:block" />
-
-            <div className="space-y-6">
-              {pilotTimeline.map((item, index) => (
-                <div key={index} className="flex gap-6 items-start">
-                  {/* Step dot */}
-                  <div className="relative z-10 flex-shrink-0 w-9 h-9 rounded-full bg-emerald-900/40 border border-emerald-700/40 flex items-center justify-center hidden sm:flex">
-                    <span className="text-emerald-400 text-xs font-bold">{index + 1}</span>
-                  </div>
-                  <Card className="flex-1 bg-card border-emerald-900/20 hover:border-emerald-800/40 transition-all duration-300">
-                    <CardContent className="pt-5 pb-5">
-                      <div className="flex flex-wrap items-center gap-3 mb-2">
-                        <span className="text-sm font-bold text-white">{item.phase}</span>
-                        <span className="text-xs bg-emerald-900/40 text-emerald-400 border border-emerald-700/30 px-2 py-0.5 rounded-full">
-                          {item.timeframe}
-                        </span>
-                      </div>
-                      <p className="text-muted-foreground text-sm leading-relaxed">{item.actions}</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section — NEW */}
+      {/* FAQ Section */}
       <section id="faq" className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">

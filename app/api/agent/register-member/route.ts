@@ -38,7 +38,9 @@ export async function POST (request: NextRequest) {
             phoneNumber,
             planType,
             subscriptionCost,
-        } = validatedData;
+            location,
+            profilePhotoUrl,
+        } = validatedData as any;
 
         // Fetch the subscription plan from database
         const subscriptionPlan = await db.subscriptionPlan.findUnique({
@@ -83,8 +85,12 @@ export async function POST (request: NextRequest) {
             },
         });
 
-        // Generate membership ID
-        const membershipId = `MED${Date.now()}${Math.floor(Math.random() * 1000)}`;
+        // Generate short location-based membership ID: MED-{Loc}{3-digit counter}
+        const locCode = location
+            ? location.trim().slice(0, 3).replace(/[^a-zA-Z]/g, '').toUpperCase().padEnd(3, 'X')
+            : 'MED';
+        const locCount = await db.user.count({ where: { location: location || null, role: 'PATIENT' } });
+        const membershipId = `MED-${locCode}${String(locCount + 1).padStart(3, '0')}`;
 
         // Calculate subscription end date based on plan duration
         const subscriptionEnd = new Date();
@@ -105,6 +111,8 @@ export async function POST (request: NextRequest) {
                 lastCreditAllocation: new Date(),
                 agentId: agent.id,
                 planId: subscriptionPlan.id,
+                location: location || null,
+                profilePhotoUrl: profilePhotoUrl || null,
             },
         });
 
