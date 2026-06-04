@@ -33,12 +33,13 @@ const coveredIllnesses = [
 ];
 
 const planRules = [
-  '14-day waiting period after registration',
+  '7-day waiting period after registration before claims are active',
   'Treatment must be diagnosed & documented at a partner clinic',
   'No coverage for pre-existing illnesses at registration',
   'Injections are included within the claim cap; excess cost is paid by member',
   'Self-medication and OTC purchases are not reimbursed',
   'No substitution of members mid-cycle',
+  'One claim per calendar month per member',
 ];
 
 
@@ -49,9 +50,9 @@ const faqs = [
       'No. MediPadi is a prepaid health support plan — not insurance or an HMO. It is designed to reduce out-of-pocket costs for the most common outpatient illnesses affecting grassroots families. There are no insurance premiums, no brokers, and no complex claims process.',
   },
   {
-    question: 'Why is there a 14-day waiting period after I register?',
+    question: 'Why is there a 7-day waiting period after I register?',
     answer:
-      'The 14-day waiting period ensures the plan remains financially sustainable and fair for all members. It prevents individuals from registering only when they are already sick, which would make the plan unviable for everyone else.',
+      'The 7-day waiting period ensures the plan remains financially sustainable and fair for all members. It prevents individuals from registering only when they are already sick, which would make the plan unviable for everyone else.',
   },
   {
     question: 'What happens if my treatment costs more than ₦5,000?',
@@ -72,21 +73,6 @@ const faqs = [
     question: 'Can I add or swap family members on my plan mid-cycle?',
     answer:
       'No. Member substitution is not allowed mid-cycle. The names registered at the start of the plan period are the only individuals covered for that cycle.',
-  },
-  {
-    question: 'How do providers get paid?',
-    answer:
-      'MediPadi settles all partner providers every Friday via weekly payments. Pricing per illness is fixed and negotiated upfront, so there are no billing disputes or delayed payments.',
-  },
-  {
-    question: 'How do I become a MediPadi Community Agent?',
-    answer:
-      'Reach out to us to express interest. Agents earn ₦500 per Individual registration, ₦1,500 per Family 4, and ₦2,000 per Family 5–7. You will receive training and all marketing materials needed to educate and onboard members in your community.',
-  },
-  {
-    question: 'What is the minimum commitment to join?',
-    answer:
-      'All plans require a minimum of 3 months upfront payment to activate. This means ₦3,600 for Individual, ₦12,000 for Family 4, and ₦18,000 for Family 5–7. Renewal is monthly after the initial period.',
   },
   {
     question: 'Are pre-existing conditions covered?',
