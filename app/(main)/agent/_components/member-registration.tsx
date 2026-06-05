@@ -42,12 +42,24 @@ interface SubscriptionPlan {
 }
 
 /* ── Photo capture helpers ── */
+async function uploadToCloudinary(dataUrl: string): Promise<string> {
+  const res = await fetch('/api/upload/photo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dataUrl }),
+  });
+  if (!res.ok) throw new Error('Failed to upload photo');
+  const { url } = await res.json();
+  return url;
+}
+
 function PhotoCapture({ value, onChange }: { value: string; onChange: (url: string) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [streaming, setStreaming] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const startCamera = async () => {
     try {
@@ -66,6 +78,18 @@ function PhotoCapture({ value, onChange }: { value: string; onChange: (url: stri
     setStreaming(false);
   };
 
+  const handleUpload = async (dataUrl: string) => {
+    setUploading(true);
+    try {
+      const url = await uploadToCloudinary(dataUrl);
+      onChange(url);
+    } catch {
+      toast.error('Photo upload failed — please try again');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const capture = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -73,19 +97,30 @@ function PhotoCapture({ value, onChange }: { value: string; onChange: (url: stri
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d')!.drawImage(video, 0, 0);
-    onChange(canvas.toDataURL('image/jpeg', 0.8));
     stopCamera();
+    handleUpload(canvas.toDataURL('image/jpeg', 0.8));
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => onChange(ev.target?.result as string);
+    reader.onload = ev => handleUpload(ev.target?.result as string);
     reader.readAsDataURL(file);
   };
 
   const clear = () => { onChange(''); stopCamera(); };
+
+  if (uploading) {
+    return (
+      <div className="w-32 h-32 rounded-xl border-2 border-emerald-700/40 flex items-center justify-center bg-muted/10">
+        <div className="text-center space-y-1">
+          <Upload className="h-5 w-5 text-emerald-400 animate-bounce mx-auto" />
+          <p className="text-xs text-muted-foreground">Uploading…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (value) {
     return (

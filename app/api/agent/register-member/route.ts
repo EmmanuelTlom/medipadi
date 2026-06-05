@@ -192,6 +192,9 @@ export async function POST (request: NextRequest) {
                 membershipId: newMember.membershipId,
                 credits: newMember.credits,
                 subscriptionEnd: newMember.subscriptionEnd,
+                planName: subscriptionPlan.name,
+                location: newMember.location,
+                profilePhotoUrl: newMember.profilePhotoUrl,
             },
             message: "Member registered successfully. Login credentials have been sent to the member's email.",
         });

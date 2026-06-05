@@ -23,6 +23,8 @@ import VirtualAccountCard from '@/components/virtual-account-card';
 import VirtualAccountBanner from '@/components/virtual-account-banner';
 import { WelcomeDialog } from './_components/welcome-dialog';
 import { ProfileSettings } from './_components/profile-settings';
+import { IdentitySetup } from './_components/identity-setup';
+import { MemberIdCard } from '@/components/member-id-card';
 import { checkUser } from '@/lib/checkUser';
 import { generateQRCode } from '@/lib/server.utils';
 import { redirect } from 'next/navigation';
@@ -112,6 +114,15 @@ async function MemberDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Identity setup prompt — shown until photo + location are set */}
+      <IdentitySetup
+        userId={user.id}
+        hasPhoto={!!user.profilePhotoUrl}
+        hasLocation={!!user.location}
+        currentLocation={user.location}
+        currentPhoto={user.profilePhotoUrl}
+      />
 
       {/* Virtual account quick-copy — only shown when account exists */}
       {user.virtualAccountActive && user.virtualAccountNumber && (
@@ -270,17 +281,31 @@ async function MemberDashboard() {
                       Show this at any MediPadi-registered facility
                     </p>
                     <div className="flex justify-center bg-white p-4 rounded-xl">
-                      <img
-                        src={qrCode}
-                        alt="Membership QR Code"
-                        className="w-40 h-40"
-                      />
+                      <img src={qrCode} alt="Membership QR Code" className="w-40 h-40" />
                     </div>
                   </div>
                 ) : (
                   <p className="text-xs text-muted-foreground text-center py-2">
                     Your QR code will appear here once your membership ID is confirmed.
                   </p>
+                )}
+
+                {/* Printable Digital ID */}
+                {user.membershipId && (
+                  <div className="pt-2 border-t border-muted/20">
+                    <p className="text-xs text-muted-foreground text-center mb-3">Your printable digital ID</p>
+                    <div className="flex justify-center overflow-x-auto">
+                      <MemberIdCard
+                        firstName={user.firstName ?? ''}
+                        lastName={user.lastName ?? ''}
+                        membershipId={user.membershipId}
+                        planName={user.plan?.name}
+                        subscriptionEnd={user.subscriptionEnd}
+                        profilePhotoUrl={user.profilePhotoUrl}
+                        location={user.location}
+                      />
+                    </div>
+                  </div>
                 )}
               </>
             ) : (
