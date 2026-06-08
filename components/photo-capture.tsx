@@ -159,7 +159,8 @@ export function PhotoCapture({ value, onChange, disabled }: PhotoCaptureProps) {
           playsInline
           muted
           onLoadedMetadata={() => setVideoReady(true)}
-          className="w-full max-h-56 rounded-xl border border-emerald-700/30 object-cover bg-black"
+          className="w-full rounded-xl border border-emerald-700/30 object-cover bg-black"
+          style={{ aspectRatio: '3/4', maxHeight: '420px' }}
         />
         <canvas ref={canvasRef} className="hidden" />
         <div className="flex gap-2">
