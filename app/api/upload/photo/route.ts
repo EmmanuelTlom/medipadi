@@ -27,29 +27,25 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'File must be an image' }, { status: 400 });
         }
 
-        // Convert to buffer and upload
+        // Convert to base64 data URL and upload
         const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        const dataUrl = `data:${file.type};base64,${base64}`;
 
-        const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
-            cloudinary.uploader.upload_stream(
-                {
-                    folder: 'medipadi/members',
-                    transformation: [
-                        { width: 400, height: 400, crop: 'fill', gravity: 'face' },
-                        { quality: 'auto', fetch_format: 'auto' },
-                    ],
-                },
-                (error, result) => {
-                    if (error || !result) reject(error ?? new Error('Upload failed'));
-                    else resolve(result as { secure_url: string });
-                }
-            ).end(buffer);
+        const result = await cloudinary.uploader.upload(dataUrl, {
+            folder: 'medipadi/members',
+            transformation: [
+                { width: 400, height: 400, crop: 'fill', gravity: 'face' },
+                { quality: 'auto', fetch_format: 'auto' },
+            ],
         });
 
         return NextResponse.json({ url: result.secure_url });
-    } catch (error) {
-        console.error('Photo upload error:', error);
-        return NextResponse.json({ error: 'Failed to upload photo' }, { status: 500 });
+    } catch (error: any) {
+        console.error('Photo upload error:', error?.message ?? error);
+        return NextResponse.json(
+            { error: 'Failed to upload photo', detail: error?.message },
+            { status: 500 }
+        );
     }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { Camera, Loader2, Upload, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -61,6 +61,13 @@ export function PhotoCapture({ value, onChange, disabled }: PhotoCaptureProps) {
     }
   };
 
+  // Attach stream to video element once it's mounted in the DOM
+  useEffect(() => {
+    if (streaming && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [streaming, stream]);
+
   const startCamera = async () => {
     try {
       const s = await navigator.mediaDevices.getUserMedia({
@@ -70,12 +77,6 @@ export function PhotoCapture({ value, onChange, disabled }: PhotoCaptureProps) {
       setStream(s);
       setVideoReady(false);
       setStreaming(true);
-      // Attach stream after state update
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = s;
-        }
-      }, 0);
     } catch {
       toast.error('Camera not accessible — use file upload instead');
     }
@@ -157,7 +158,7 @@ export function PhotoCapture({ value, onChange, disabled }: PhotoCaptureProps) {
           autoPlay
           playsInline
           muted
-          onCanPlay={() => setVideoReady(true)}
+          onLoadedMetadata={() => setVideoReady(true)}
           className="w-full max-h-56 rounded-xl border border-emerald-700/30 object-cover bg-black"
         />
         <canvas ref={canvasRef} className="hidden" />
