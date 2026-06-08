@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash } from 'crypto';
 
 import { auth } from '@clerk/nextjs/server';
-import { v2 as cloudinary } from 'cloudinary';
 
 export async function POST(request: NextRequest) {
     try {
@@ -10,17 +10,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Configure inside handler so env vars are always fresh
-        const cloudName  = process.env.CLOUDINARY_CLOUD_NAME;
-        const apiKey     = process.env.CLOUDINARY_API_KEY;
-        const apiSecret  = process.env.CLOUDINARY_API_SECRET;
+        const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+        const apiKey    = process.env.CLOUDINARY_API_KEY;
+        const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
         if (!cloudName || !apiKey || !apiSecret) {
-            console.error('Missing Cloudinary env vars:', { cloudName: !!cloudName, apiKey: !!apiKey, apiSecret: !!apiSecret });
-            return NextResponse.json({ error: 'Storage not configured' }, { status: 500 });
+            return NextResponse.json(
+                { error: 'Storage not configured', missing: { cloudName: !cloudName, apiKey: !apiKey, apiSecret: !apiSecret } },
+                { status: 500 }
+            );
         }
-
-        cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
 
         const formData = await request.formData();
         const file = formData.get('file') as File | null;
@@ -29,23 +28,51 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 });
         }
 
-        if (!file.type.startsWith('image/')) {
-            return NextResponse.json({ error: 'File must be an image' }, { status: 400 });
-        }
+        // Build signed upload parameters
+        const timestamp = Math.round(Date.now() / 1000).toString();
+        const folder    = 'medipadi/members';
+        const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
+        const signature = createHash('sha256')
+            .update(paramsToSign + apiSecret)
+            .digest('hex');
 
+        // Convert file to base64 data URL
         const arrayBuffer = await file.arrayBuffer();
-        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        const base64  = Buffer.from(arrayBuffer).toString('base64');
         const dataUrl = `data:${file.type};base64,${base64}`;
 
-        const result = await cloudinary.uploader.upload(dataUrl, {
-            folder: 'medipadi/members',
-            transformation: [
-                { width: 400, height: 400, crop: 'fill', gravity: 'face' },
-                { quality: 'auto', fetch_format: 'auto' },
-            ],
-        });
+        // Direct fetch to Cloudinary — no SDK
+        const body = new FormData();
+        body.append('file', dataUrl);
+        body.append('api_key', apiKey);
+        body.append('timestamp', timestamp);
+        body.append('signature', signature);
+        body.append('folder', folder);
+        body.append('transformation', 'c_fill,g_face,h_400,w_400/q_auto,f_auto');
 
-        return NextResponse.json({ url: result.secure_url });
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+        const res = await fetch(uploadUrl, { method: 'POST', body });
+
+        const text = await res.text();
+
+        let json: any;
+        try { json = JSON.parse(text); }
+        catch {
+            return NextResponse.json(
+                { error: 'Cloudinary returned unexpected response', status: res.status, body: text.slice(0, 300) },
+                { status: 500 }
+            );
+        }
+
+        if (!res.ok) {
+            return NextResponse.json(
+                { error: 'Cloudinary upload failed', detail: json },
+                { status: 500 }
+            );
+        }
+
+        return NextResponse.json({ url: json.secure_url });
+
     } catch (error: any) {
         console.error('Photo upload error:', error?.message ?? error);
         return NextResponse.json(
