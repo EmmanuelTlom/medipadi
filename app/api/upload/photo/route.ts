@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 });
         }
 
-        // Build signed upload parameters
+        // Build signed upload parameters (sorted alphabetically — Cloudinary requirement)
         const timestamp = Math.round(Date.now() / 1000).toString();
         const folder    = 'medipadi/members';
         const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
@@ -41,14 +41,13 @@ export async function POST(request: NextRequest) {
         const base64  = Buffer.from(arrayBuffer).toString('base64');
         const dataUrl = `data:${file.type};base64,${base64}`;
 
-        // Direct fetch to Cloudinary — no SDK
+        // Direct fetch to Cloudinary — no SDK, no transformation param (applied at display time)
         const body = new FormData();
         body.append('file', dataUrl);
         body.append('api_key', apiKey);
         body.append('timestamp', timestamp);
         body.append('signature', signature);
         body.append('folder', folder);
-        body.append('transformation', 'c_fill,g_face,h_400,w_400/q_auto,f_auto');
 
         const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
         const res = await fetch(uploadUrl, { method: 'POST', body });
