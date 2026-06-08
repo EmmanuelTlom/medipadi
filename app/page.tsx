@@ -169,7 +169,7 @@ export default async function Home() {
             {[
               { value: '₦1,200/mo', label: 'Starting plan price' },
               { value: '< 5 mins', label: 'To register' },
-              { value: '₦5,000', label: 'Claim cap per episode' },
+              { value: '₦5,000', label: 'Claim cap per month' },
             ].map((item) => (
               <div key={item.label} className="py-6 px-4 text-center">
                 <p className="text-xl md:text-2xl font-bold text-emerald-400">{item.value}</p>

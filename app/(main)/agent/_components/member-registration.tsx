@@ -7,7 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Camera, Mail, MapPin, Phone, Upload, User, UserPlus, X } from 'lucide-react';
+import { Mail, MapPin, Phone, User, UserPlus } from 'lucide-react';
+import { PhotoCapture } from '@/components/photo-capture';
 import {
   Select,
   SelectContent,
@@ -15,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useRequest } from 'alova/client';
 
 import { BarLoader } from 'react-spinners';
@@ -41,128 +42,6 @@ interface SubscriptionPlan {
   duration: number;
 }
 
-/* ── Photo capture helpers ── */
-async function uploadToCloudinary(dataUrl: string): Promise<string> {
-  const res = await fetch('/api/upload/photo', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ dataUrl }),
-  });
-  if (!res.ok) throw new Error('Failed to upload photo');
-  const { url } = await res.json();
-  return url;
-}
-
-function PhotoCapture({ value, onChange }: { value: string; onChange: (url: string) => void }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [streaming, setStreaming] = useState(false);
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [uploading, setUploading] = useState(false);
-
-  const startCamera = async () => {
-    try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-      setStream(s);
-      if (videoRef.current) videoRef.current.srcObject = s;
-      setStreaming(true);
-    } catch {
-      toast.error('Could not access camera — use file upload instead');
-    }
-  };
-
-  const stopCamera = () => {
-    stream?.getTracks().forEach(t => t.stop());
-    setStream(null);
-    setStreaming(false);
-  };
-
-  const handleUpload = async (dataUrl: string) => {
-    setUploading(true);
-    try {
-      const url = await uploadToCloudinary(dataUrl);
-      onChange(url);
-    } catch {
-      toast.error('Photo upload failed — please try again');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const capture = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d')!.drawImage(video, 0, 0);
-    stopCamera();
-    handleUpload(canvas.toDataURL('image/jpeg', 0.8));
-  };
-
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => handleUpload(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const clear = () => { onChange(''); stopCamera(); };
-
-  if (uploading) {
-    return (
-      <div className="w-32 h-32 rounded-xl border-2 border-emerald-700/40 flex items-center justify-center bg-muted/10">
-        <div className="text-center space-y-1">
-          <Upload className="h-5 w-5 text-emerald-400 animate-bounce mx-auto" />
-          <p className="text-xs text-muted-foreground">Uploading…</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (value) {
-    return (
-      <div className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-emerald-700/40">
-        <img src={value} alt="Member photo" className="w-full h-full object-cover" />
-        <button onClick={clear} className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 text-white hover:bg-red-600 transition-colors">
-          <X className="h-3 w-3" />
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {streaming ? (
-        <div className="space-y-2">
-          <video ref={videoRef} autoPlay playsInline className="w-full rounded-xl border border-emerald-700/30 max-h-52 object-cover" />
-          <canvas ref={canvasRef} className="hidden" />
-          <div className="flex gap-2">
-            <Button type="button" size="sm" onClick={capture} className="bg-emerald-600 hover:bg-emerald-700 flex-1">
-              <Camera className="h-3.5 w-3.5 mr-1.5" /> Capture
-            </Button>
-            <Button type="button" size="sm" variant="outline" onClick={stopCamera}>Cancel</Button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex gap-2">
-          <Button type="button" size="sm" variant="outline" onClick={startCamera} className="border-emerald-700/40 flex-1">
-            <Camera className="h-3.5 w-3.5 mr-1.5" /> Use Camera
-          </Button>
-          <Button type="button" size="sm" variant="outline" onClick={() => fileRef.current?.click()} className="border-emerald-700/40 flex-1">
-            <Upload className="h-3.5 w-3.5 mr-1.5" /> Upload Photo
-          </Button>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-        </div>
-      )}
-      <p className="text-xs text-muted-foreground">
-        Capture or upload a clear face photo — used by providers to verify the member's identity.
-      </p>
-    </div>
-  );
-}
 
 export function MemberRegistration({
   user,
