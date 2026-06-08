@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
         const member = await db.user.findUnique({
             where: { clerkUserId: userId },
-            select: { id: true, role: true, profilePhotoUrl: true },
+            select: { id: true, role: true, profilePhotoUrl: true, membershipId: true, location: true },
         });
 
         if (!member || member.role !== 'PATIENT') {
@@ -21,13 +21,20 @@ export async function POST(request: NextRequest) {
 
         const { profilePhotoUrl, location } = await request.json();
 
-        // Photo can only be set once by the member — changes require admin
         const updateData: Record<string, string> = {};
+
+        // Photo can only be set once — changes require admin
         if (profilePhotoUrl && !member.profilePhotoUrl) {
             updateData.profilePhotoUrl = profilePhotoUrl;
         }
+
         if (location) {
             updateData.location = location;
+
+            // Upgrade membership ID to location-based format
+            const locCode = location.trim().slice(0, 3).replace(/[^a-zA-Z]/g, '').toUpperCase().padEnd(3, 'X');
+            const locCount = await db.user.count({ where: { location, role: 'PATIENT' } });
+            updateData.membershipId = `MED-${locCode}${String(locCount + 1).padStart(3, '0')}`;
         }
 
         if (Object.keys(updateData).length === 0) {
